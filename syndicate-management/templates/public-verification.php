@@ -1,17 +1,5 @@
 <?php if (!defined('ABSPATH')) exit; ?>
 <div class="sm-verify-container" dir="rtl" style="max-width: 1000px; margin: 0 auto; padding: 40px 20px;">
-    <!-- Professional Alerts Section -->
-    <div style="background: #f0f7ff; border-right: 5px solid #3182ce; padding: 25px; border-radius: 12px; margin-bottom: 40px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
-        <div style="display: flex; gap: 15px; align-items: flex-start;">
-            <span class="dashicons dashicons-info" style="color: #3182ce; font-size: 24px; width: 24px; height: 24px;"></span>
-            <div>
-                <h4 style="margin: 0 0 10px 0; color: #2c5282; font-weight: 800; font-size: 1.1em;">تعليمات وإرشادات التحقق</h4>
-                <p style="margin: 0; color: #2b6cb0; font-size: 14px; line-height: 1.7;">
-                    يرجى إدخال الاسم الكامل أو الرقم القومي بدقة لضمان صحة نتائج التحقق. تأكد من مطابقة كافة التفاصيل للسجلات الرسمية الصادرة عن النقابة. في حال وجود أي اختلاف أو صعوبة في التحقق، يرجى التواصل مع إدارة النقابة مباشرة للحصول على المساعدة اللازمة.
-                </p>
-            </div>
-        </div>
-    </div>
 
     <div class="sm-verify-header" style="text-align: center; margin-bottom: 50px;">
         <div style="display: inline-flex; align-items: center; justify-content: center; width: 70px; height: 70px; background: rgba(246, 48, 73, 0.1); border-radius: 24px; margin-bottom: 20px;">
@@ -53,6 +41,36 @@
     </div>
 
     <div id="sm-verify-results" style="margin-top: 50px; display: grid; gap: 30px;"></div>
+
+    <!-- Professional Guidance Section (Moved Below Search) -->
+    <div style="background: #fff; border: 1px solid #e2e8f0; padding: 35px; border-radius: 24px; margin-top: 60px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
+        <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+            <div style="width: 45px; height: 45px; background: var(--sm-primary-color); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                <span class="dashicons dashicons-welcome-learn-more" style="font-size: 24px; width: 24px; height: 24px;"></span>
+            </div>
+            <h4 style="margin: 0; color: var(--sm-dark-color); font-weight: 900; font-size: 1.3em;">كيفية استخدام بوابة التحقق الرقمية</h4>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">1. اختيار نوع الاستعلام</div>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">حدد ما إذا كنت تريد البحث بالاسم، الرقم القومي، أو رقم ترخيص محدد من القائمة المنسدلة.</p>
+            </div>
+            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">2. إدخال البيانات بدقة</div>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">تأكد من كتابة الاسم كما هو مدون في الأوراق الرسمية، أو إدخال الرقم القومي المكون من 14 رقماً.</p>
+            </div>
+            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">3. مراجعة النتائج</div>
+                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">ستظهر لك بيانات المستند وحالة صلاحيته (سارٍ أو منتهي) فور مطابقتها مع قواعد بيانات النقابة.</p>
+            </div>
+        </div>
+
+        <div style="margin-top: 25px; padding: 15px 20px; background: #fff5f5; border-radius: 12px; border: 1px solid #feb2b2; display: flex; gap: 15px; align-items: center;">
+            <span class="dashicons dashicons-warning" style="color: #c53030;"></span>
+            <p style="margin: 0; font-size: 12px; color: #c53030; font-weight: 600;">ملاحظة: تهدف هذه البوابة للتحقق من صحة البيانات فقط ولا تعتبر بديلاً عن أصول المستندات الرسمية المعتمدة.</p>
+        </div>
+    </div>
 </div>
 
 <style>

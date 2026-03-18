@@ -1231,9 +1231,9 @@ class SM_DB {
             $params[] = $s;
         }
 
-        $query = "SELECT t.*, m.name as member_name, m.photo_url as member_photo
+        $query = "SELECT t.*, IFNULL(m.name, 'زائر / خارجي') as member_name, m.photo_url as member_photo
                   FROM {$wpdb->prefix}sm_tickets t
-                  JOIN {$wpdb->prefix}sm_members m ON t.member_id = m.id
+                  LEFT JOIN {$wpdb->prefix}sm_members m ON t.member_id = m.id
                   WHERE $where
                   ORDER BY t.updated_at DESC";
 
@@ -1246,9 +1246,9 @@ class SM_DB {
     public static function get_ticket($id) {
         global $wpdb;
         return $wpdb->get_row($wpdb->prepare(
-            "SELECT t.*, m.name as member_name, m.governorate as member_province, m.phone as member_phone
+            "SELECT t.*, IFNULL(m.name, 'زائر / خارجي') as member_name, IFNULL(m.governorate, 'HQ') as member_province, IFNULL(m.phone, 'N/A') as member_phone
              FROM {$wpdb->prefix}sm_tickets t
-             JOIN {$wpdb->prefix}sm_members m ON t.member_id = m.id
+             LEFT JOIN {$wpdb->prefix}sm_members m ON t.member_id = m.id
              WHERE t.id = %d",
             $id
         ));
