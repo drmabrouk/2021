@@ -127,6 +127,7 @@ class SM_Public {
         // Page Customization Shortcodes
         add_shortcode('services', array($this, 'shortcode_services'));
         add_shortcode('sm_branches', array($this, 'shortcode_branches'));
+        add_shortcode('contact', array($this, 'shortcode_contact'));
 
         add_filter('authenticate', array($this, 'custom_authenticate'), 20, 3);
         add_filter('auth_cookie_expiration', array($this, 'custom_auth_cookie_expiration'), 10, 3);
@@ -255,6 +256,11 @@ class SM_Public {
         $is_logged_in = is_user_logged_in();
         $login_url = home_url('/sm-login');
 
+        $current_member = null;
+        if ($is_logged_in) {
+            $current_member = SM_DB::get_member_by_username(wp_get_current_user()->user_login);
+        }
+
         $categories = ['الكل'];
         foreach ($services as $s) {
             $cat = $s->category ?: 'عام';
@@ -283,6 +289,51 @@ class SM_Public {
                             style="background: var(--sm-primary-color); color: #fff; border: none; padding: 0 45px; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif; box-shadow: 0 4px 12px rgba(246, 48, 73, 0.3);">بحث وتتبع</button>
                 </div>
                 <div id="sm-tracking-results-area" style="margin-top: 40px; display: none; background: #fff; border-radius: 24px; padding: 35px; border: 1px solid #e2e8f0; animation: smFadeIn 0.4s ease; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);"></div>
+
+                <?php if ($is_logged_in && $current_member): ?>
+                    <?php
+                    global $wpdb;
+                    $my_requests = $wpdb->get_results($wpdb->prepare(
+                        "SELECT r.*, s.name as service_name
+                         FROM {$wpdb->prefix}sm_service_requests r
+                         JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
+                         WHERE r.member_id = %d
+                         ORDER BY r.created_at DESC LIMIT 5",
+                        $current_member->id
+                    ));
+                    if ($my_requests):
+                    ?>
+                    <div style="margin-top: 45px; border-top: 1px solid #e2e8f0; padding-top: 30px;">
+                        <h4 style="margin: 0 0 20px 0; font-weight: 800; color: var(--sm-dark-color); display: flex; align-items: center; gap: 10px;">
+                            <span class="dashicons dashicons-clock" style="color:var(--sm-primary-color);"></span> طلباتك الأخيرة
+                        </h4>
+                        <div style="display: grid; gap: 12px;">
+                            <?php foreach ($my_requests as $mr):
+                                $track_code = date('Ymd', strtotime($mr->created_at)) . $mr->id;
+                                $status_labels = [
+                                    'pending' => 'قيد الانتظار',
+                                    'approved' => 'مكتمل',
+                                    'rejected' => 'مرفوض'
+                                ];
+                            ?>
+                            <div style="background: #fff; padding: 15px 20px; border-radius: 15px; border: 1px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer;"
+                                 onclick="document.getElementById('sm_service_tracking_input').value='<?php echo $track_code; ?>'; smTrackServiceRequest();">
+                                <div>
+                                    <div style="font-weight: 700; color: var(--sm-dark-color);"><?php echo esc_html($mr->service_name); ?></div>
+                                    <div style="font-size: 11px; color: #94a3b8; margin-top: 4px;">كود التتبع: #<?php echo $track_code; ?> | بتاريخ: <?php echo date('Y-m-d', strtotime($mr->created_at)); ?></div>
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 15px;">
+                                    <span style="font-size: 12px; font-weight: 700; padding: 4px 12px; border-radius: 10px; background: #f8fafc; border: 1px solid #e2e8f0;">
+                                        <?php echo $status_labels[$mr->status] ?? $mr->status; ?>
+                                    </span>
+                                    <span class="dashicons dashicons-arrow-left-alt2" style="font-size: 16px; color: var(--sm-primary-color);"></span>
+                                </div>
+                            </div>
+                            <?php endforeach; ?>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                <?php endif; ?>
             </div>
 
             <div class="sm-services-layout" style="display: flex; gap: 40px; margin-top: 50px; align-items: flex-start;">
@@ -373,8 +424,13 @@ class SM_Public {
                                             </span>
                                         </div>
                                         <?php
-                                        $btn_onclick = $s->requires_login ? "smHandleLoginService(this)" : "smOpenProgressiveForm(this, ".json_encode($s).")";
-                                        $btn_label = $s->requires_login ? "دخول للأعضاء" : "تقديم طلب";
+                                        if ($is_logged_in) {
+                                            $btn_onclick = "smOpenProgressiveForm(this, ".json_encode($s).")";
+                                            $btn_label = "طلب خدمة";
+                                        } else {
+                                            $btn_onclick = "window.location.href='".esc_url($login_url)."'";
+                                            $btn_label = "طلب خدمة";
+                                        }
                                         ?>
                                         <button onclick='<?php echo $btn_onclick; ?>' class="sm-btn-sleek sm-service-trigger"
                                                 style="background: var(--sm-dark-color); color: #fff; padding: 12px 25px; border: none; border-radius: 15px; font-weight: 700; font-size: 14px; cursor: pointer; transition: 0.3s;">
@@ -512,14 +568,20 @@ class SM_Public {
                     <form id="sm-public-service-form">
                         <input type="hidden" name="service_id" value="${s.id}">
                         <div class="sm-form-step active" id="step-1">
-                            <div class="sm-form-group"><label class="sm-label">الاسم الكامل:</label><input name="cust_name" class="sm-input" required></div>
-                            <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input name="cust_email" type="email" class="sm-input" required></div>
-                            <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input name="cust_phone" class="sm-input" required></div>
+                            <div class="sm-form-group"><label class="sm-label">الاسم الكامل:</label><input name="cust_name" class="sm-input" required value="<?php echo esc_attr($current_member->name ?? ''); ?>"></div>
+                            <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input name="cust_email" type="email" class="sm-input" required value="<?php echo esc_attr($current_member->email ?? ''); ?>"></div>
+                            <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input name="cust_phone" class="sm-input" required value="<?php echo esc_attr($current_member->phone ?? ''); ?>"></div>
                             <div class="sm-form-group">
                                 <label class="sm-label">الفرع التابع له:</label>
                                 <select name="cust_branch" class="sm-select" required>
                                     <option value="">-- اختر الفرع --</option>
-                                    <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                                    <?php
+                                    $member_gov = $current_member->governorate ?? '';
+                                    foreach(SM_Settings::get_governorates() as $k=>$v) {
+                                        $sel = ($member_gov === $k) ? 'selected' : '';
+                                        echo "<option value='$k' $sel>$v</option>";
+                                    }
+                                    ?>
                                 </select>
                             </div>
                             <button type="button" onclick="smMoveStep(2)" class="sm-btn" style="width:100%; margin-top:10px;">التالي</button>
@@ -1347,6 +1409,7 @@ class SM_Public {
         $u->set_role($role);
 
         update_user_meta($user_id, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
+        if (isset($_POST['national_id'])) update_user_meta($user_id, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($user_id, 'sm_phone', sanitize_text_field($_POST['phone']));
         update_user_meta($user_id, 'sm_rank', sanitize_text_field($_POST['rank']));
 
@@ -2573,6 +2636,125 @@ class SM_Public {
             wp_send_json_success();
         } else {
             wp_send_json_error('فشل في معالجة الطلب');
+        }
+    }
+
+    public function shortcode_contact() {
+        ob_start();
+        ?>
+        <div class="sm-contact-wrapper" dir="rtl" style="max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
+            <div style="text-align: center; margin-bottom: 35px;">
+                <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: rgba(246, 48, 73, 0.1); border-radius: 20px; margin-bottom: 20px;">
+                    <span class="dashicons dashicons-email-alt" style="font-size: 30px; width: 30px; height: 30px; color: var(--sm-primary-color);"></span>
+                </div>
+                <h2 style="margin: 0; font-weight: 900; font-size: 2em; color: var(--sm-dark-color);">تواصل مع الإدارة</h2>
+                <p style="margin: 10px 0 0 0; color: #64748b; font-size: 15px;">يسعدنا استقبال استفساراتكم ومقترحاتكم وسنقوم بالرد عليكم في أقرب وقت</p>
+            </div>
+
+            <form id="sm-public-contact-form">
+                <?php wp_nonce_field('sm_contact_action', 'nonce'); ?>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
+                    <div class="sm-form-group">
+                        <label class="sm-label">الاسم الكامل:</label>
+                        <input type="text" name="name" class="sm-input" required placeholder="أدخل اسمك الكامل">
+                    </div>
+                    <div class="sm-form-group">
+                        <label class="sm-label">رقم الهاتف:</label>
+                        <input type="text" name="phone" class="sm-input" required placeholder="01xxxxxxxxx">
+                    </div>
+                </div>
+                <div class="sm-form-group" style="margin-bottom: 20px;">
+                    <label class="sm-label">البريد الإلكتروني:</label>
+                    <input type="email" name="email" class="sm-input" required placeholder="example@domain.com">
+                </div>
+                <div class="sm-form-group" style="margin-bottom: 20px;">
+                    <label class="sm-label">الموضوع:</label>
+                    <input type="text" name="subject" class="sm-input" required placeholder="أدخل عنوان الرسالة">
+                </div>
+                <div class="sm-form-group" style="margin-bottom: 30px;">
+                    <label class="sm-label">نص الرسالة:</label>
+                    <textarea name="message" class="sm-textarea" rows="6" required placeholder="كيف يمكننا مساعدتك؟"></textarea>
+                </div>
+                <button type="submit" class="sm-btn" style="width: 100%; height: 55px; font-weight: 800; font-size: 16px; border-radius: 15px; box-shadow: 0 4px 12px rgba(246, 48, 73, 0.3);">إرسال الرسالة الآن</button>
+            </form>
+
+            <div id="sm-contact-success" style="display: none; text-align: center; padding: 40px 0;">
+                <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
+                <h3 style="font-weight: 900; font-size: 1.8em; margin: 0 0 10px 0;">تم إرسال رسالتك بنجاح!</h3>
+                <p style="color: #64748b; font-size: 15px; line-height: 1.6;">شكراً لتواصلك معنا. سيقوم فريق الدعم بمراجعة رسالتك والرد عليك عبر البريد الإلكتروني في أقرب وقت ممكن.</p>
+                <button onclick="location.reload()" class="sm-btn sm-btn-outline" style="margin-top: 25px; width: auto; padding: 0 40px;">إرسال رسالة أخرى</button>
+            </div>
+        </div>
+
+        <script>
+        document.getElementById('sm-public-contact-form')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const form = this;
+            const btn = form.querySelector('button[type="submit"]');
+            const fd = new FormData(form);
+            fd.append('action', 'sm_submit_contact_form');
+
+            btn.disabled = true;
+            btn.innerText = 'جاري الإرسال...';
+
+            fetch(ajaxurl, { method: 'POST', body: fd })
+            .then(r => r.json())
+            .then(res => {
+                if (res.success) {
+                    form.style.display = 'none';
+                    document.getElementById('sm-contact-success').style.display = 'block';
+                } else {
+                    alert('خطأ: ' + res.data);
+                    btn.disabled = false;
+                    btn.innerText = 'إرسال الرسالة الآن';
+                }
+            });
+        });
+        </script>
+        <?php
+        return ob_get_clean();
+    }
+
+    public function ajax_submit_contact_form() {
+        check_ajax_referer('sm_contact_action', 'nonce');
+
+        $name = sanitize_text_field($_POST['name']);
+        $email = sanitize_email($_POST['email']);
+        $phone = sanitize_text_field($_POST['phone']);
+        $subject = sanitize_text_field($_POST['subject']);
+        $message = sanitize_textarea_field($_POST['message']);
+
+        // Check if member exists by email or NID (if we had it)
+        global $wpdb;
+        $member = $wpdb->get_row($wpdb->prepare("SELECT id, governorate FROM {$wpdb->prefix}sm_members WHERE email = %s", $email));
+
+        $member_id = $member ? $member->id : 0;
+        $province = $member ? $member->governorate : 'HQ';
+
+        // Create support ticket
+        $res = $wpdb->insert("{$wpdb->prefix}sm_tickets", array(
+            'member_id' => $member_id,
+            'subject' => $subject,
+            'category' => 'inquiry',
+            'priority' => 'medium',
+            'status' => 'open',
+            'province' => $province,
+            'created_at' => current_time('mysql'),
+            'updated_at' => current_time('mysql')
+        ));
+
+        if ($res) {
+            $ticket_id = $wpdb->insert_id;
+            // Add initial message
+            $wpdb->insert("{$wpdb->prefix}sm_ticket_thread", array(
+                'ticket_id' => $ticket_id,
+                'sender_id' => is_user_logged_in() ? get_current_user_id() : 0,
+                'message' => "رسالة من نموذج التواصل:\n\nالاسم: $name\nالهاتف: $phone\nالبريد: $email\n\nالرسالة:\n$message",
+                'created_at' => current_time('mysql')
+            ));
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('فشل تقديم تذكرة الدعم');
         }
     }
 
