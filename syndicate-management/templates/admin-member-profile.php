@@ -25,7 +25,7 @@ if ($is_syndicate_staff && !current_user_can('sm_manage_members')) {
 if ($is_syndicate_admin) {
     $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
     if ($my_gov && $member->governorate !== $my_gov) {
-        echo '<div class="error" style="padding:20px; background:#fff5f5; color:#c53030; border-radius:8px; border:1px solid #feb2b2;"><h4>⚠️ عذراً، لا تملك صلاحية الوصول لهذا الملف.</h4><p>هذا العضو يتبع لمحافظة أخرى غير المسجلة في حسابك.</p></div>';
+        echo '<div class="error" style="padding:20px; background:#fff5f5; color:#c53030; border-radius:8px; border:1px solid #feb2b2;"><h4>⚠️ عذراً، لا تملك صلاحية الوصول لهذا الملف.</h4><p>هذا العضو يتبع لفرع أخرى غير المسجلة في حسابك.</p></div>';
         return;
     }
 }
@@ -127,11 +127,11 @@ $acc_status = SM_Finance::get_member_status($member->id);
 
                 <h4 style="margin: 20px 0 10px 0; color: var(--sm-primary-color);">بيانات السكن والاتصال</h4>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                    <div><label class="sm-label">محافظة الميلاد:</label> <div class="sm-value"><?php echo esc_html($member->province_of_birth ?: '---'); ?></div></div>
-                    <div><label class="sm-label">محافظة السكن:</label> <div class="sm-value"><?php echo esc_html($govs[$member->residence_governorate] ?? $member->residence_governorate); ?></div></div>
+                    <div><label class="sm-label">فرع الميلاد:</label> <div class="sm-value"><?php echo esc_html($member->province_of_birth ?: '---'); ?></div></div>
+                    <div><label class="sm-label">فرع السكن:</label> <div class="sm-value"><?php echo esc_html($govs[$member->residence_governorate] ?? $member->residence_governorate); ?></div></div>
                     <div><label class="sm-label">المدينة / المركز:</label> <div class="sm-value"><?php echo esc_html($member->residence_city); ?></div></div>
                     <div style="grid-column: span 2;"><label class="sm-label">العنوان (الشارع / القرية):</label> <div class="sm-value"><?php echo esc_html($member->residence_street); ?></div></div>
-                    <div><label class="sm-label">محافظة الفرع (النقابة):</label> <div class="sm-value"><?php echo esc_html($govs[$member->governorate] ?? $member->governorate); ?></div></div>
+                    <div><label class="sm-label">فرع الفرع (النقابة):</label> <div class="sm-value"><?php echo esc_html($govs[$member->governorate] ?? $member->governorate); ?></div></div>
                     <?php if ($member->wp_user_id): ?>
                         <?php $temp_pass = get_user_meta($member->wp_user_id, 'sm_temp_pass', true); if ($temp_pass): ?>
                             <div style="grid-column: span 2; background: #fffaf0; padding: 15px; border-radius: 8px; border: 1px solid #feebc8; margin-top: 10px;">
@@ -326,9 +326,9 @@ $acc_status = SM_Finance::get_member_status($member->id);
                     </div>
                     <div class="sm-form-group"><label class="sm-label">التخصص:</label><select name="specialization" id="edit_spec" class="sm-select edit-cascading"><?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
 
-                    <div class="sm-form-group"><label class="sm-label">محافظة السكن:</label><select name="residence_governorate" id="edit_res_gov" class="sm-select"><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">فرع السكن:</label><select name="residence_governorate" id="edit_res_gov" class="sm-select"><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
                     <div class="sm-form-group"><label class="sm-label">المدينة / المركز:</label><input name="residence_city" id="edit_res_city" type="text" class="sm-input"></div>
-                    <div class="sm-form-group"><label class="sm-label">محافظة الفرع:</label><select name="governorate" id="edit_gov" class="sm-select"><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">فرع الفرع:</label><select name="governorate" id="edit_gov" class="sm-select"><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
 
                     <div class="sm-form-group" style="grid-column: span 3;"><label class="sm-label">العنوان (الشارع / القرية):</label><input name="residence_street" id="edit_res_street" type="text" class="sm-input"></div>
 
@@ -368,11 +368,11 @@ $acc_status = SM_Finance::get_member_status($member->id);
                     </div>
                     <div class="sm-form-group"><label class="sm-label">التخصص:</label><select name="specialization" class="sm-select academic-cascading"><?php foreach ($specs as $k => $v) echo "<option value='$k' ".selected($member->specialization, $k, false).">$v</option>"; ?></select></div>
 
-                    <div class="sm-form-group"><label class="sm-label">محافظة السكن:</label><select name="residence_governorate" class="sm-select"><?php foreach ($govs as $k => $v) echo "<option value='$k' ".selected($member->residence_governorate, $k, false).">$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">فرع السكن:</label><select name="residence_governorate" class="sm-select"><?php foreach ($govs as $k => $v) echo "<option value='$k' ".selected($member->residence_governorate, $k, false).">$v</option>"; ?></select></div>
                     <div class="sm-form-group"><label class="sm-label">المدينة / المركز:</label><input name="residence_city" type="text" class="sm-input" value="<?php echo esc_attr($member->residence_city); ?>"></div>
                     <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">العنوان (الشارع / القرية):</label><input name="residence_street" type="text" class="sm-input" value="<?php echo esc_attr($member->residence_street); ?>"></div>
 
-                    <div class="sm-form-group"><label class="sm-label">محافظة الفرع:</label><select name="governorate" class="sm-select"><?php foreach ($govs as $k => $v) echo "<option value='$k' ".selected($member->governorate, $k, false).">$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">فرع الفرع:</label><select name="governorate" class="sm-select"><?php foreach ($govs as $k => $v) echo "<option value='$k' ".selected($member->governorate, $k, false).">$v</option>"; ?></select></div>
                     <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input type="text" name="phone" class="sm-input" value="<?php echo esc_attr($member->phone); ?>"></div>
                     <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input type="email" name="email" class="sm-input" value="<?php echo esc_attr($member->email); ?>"></div>
                     <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">سبب التحديث / ملاحظات إضافية:</label><textarea name="notes" class="sm-input" rows="2"></textarea></div>

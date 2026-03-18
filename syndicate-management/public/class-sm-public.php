@@ -569,7 +569,7 @@ class SM_Public {
         $output .= '<div class="sm-form-group"><label class="sm-label">الدرجة العلمية:</label><select name="academic_degree" class="sm-select" required>';
         foreach(SM_Settings::get_academic_degrees() as $k=>$v) $output .= "<option value='$k'>$v</option>";
         $output .= '</select></div>';
-        $output .= '<div class="sm-form-group"><label class="sm-label">محافظة الإقامة:</label><select name="residence_governorate" class="sm-select" required><option value="">-- اختر --</option>';
+        $output .= '<div class="sm-form-group"><label class="sm-label">فرع الإقامة:</label><select name="residence_governorate" class="sm-select" required><option value="">-- اختر --</option>';
         foreach(SM_Settings::get_governorates() as $k=>$v) $output .= "<option value='$k'>$v</option>";
         $output .= '</select></div>';
         $output .= '<div class="sm-form-group"><label class="sm-label">مدينة الإقامة:</label><input name="residence_city" type="text" class="sm-input" required></div>';
@@ -888,7 +888,7 @@ class SM_Public {
                         <div style="font-size: 0.85em; font-weight: 700; color: var(--sm-dark-color);"><?php echo $greeting . '، ' . $user->display_name; ?></div>
                         <div style="font-size: 0.7em; color: #38a169;">متصل الآن <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 10px; width: 10px; height: 10px;"></span></div>
                     </div>
-                    <?php echo get_avatar($user->ID, 32, '', '', array('style' => 'border-radius: 50%; border: 2px solid var(--sm-primary-color);')); ?>
+                    <?php echo get_avatar($user->ID, 32, '', '', array('style' => 'border-radius: 50%; border: 2px solid var(--sm-primary-color); width: 32px; height: 32px; object-fit: cover;')); ?>
                 </div>
 
                 <div id="sm-user-dropdown-menu" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--sm-border-color); border-radius: 8px; width: 260px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; animation: smFadeIn 0.2s ease-out; padding: 10px 0;">
@@ -1322,11 +1322,11 @@ class SM_Public {
 
         global $wpdb;
         $gov = sanitize_text_field($_POST['governorate']);
-        if (!$gov) wp_send_json_error('محافظة غير محددة');
+        if (!$gov) wp_send_json_error('فرع غير محددة');
 
         // 1. Get member IDs for this gov
         $member_ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$wpdb->prefix}sm_members WHERE governorate = %s", $gov));
-        if (empty($member_ids)) wp_send_json_success('لا توجد بيانات لهذه المحافظة');
+        if (empty($member_ids)) wp_send_json_success('لا توجد بيانات لهذه الفرع');
 
         // 2. Delete WP Users
         $wp_user_ids = $wpdb->get_col($wpdb->prepare("SELECT wp_user_id FROM {$wpdb->prefix}sm_members WHERE governorate = %s AND wp_user_id IS NOT NULL", $gov));
@@ -1342,7 +1342,7 @@ class SM_Public {
         // 4. Delete members
         $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}sm_members WHERE governorate = %s", $gov));
 
-        SM_Logger::log('حذف بيانات محافظة', "تم مسح كافة بيانات محافظة: $gov");
+        SM_Logger::log('حذف بيانات فرع', "تم مسح كافة بيانات فرع: $gov");
         wp_send_json_success();
     }
 
@@ -1397,7 +1397,7 @@ class SM_Public {
             else $skipped++;
         }
 
-        SM_Logger::log('دمج بيانات محافظة', "تم دمج $success عضواً لمحافظة $gov (تخطى $skipped)");
+        SM_Logger::log('دمج بيانات فرع', "تم دمج $success عضواً لفرع $gov (تخطى $skipped)");
         wp_send_json_success("تم بنجاح دمج $success عضواً وتجاهل $skipped عضواً مسجلين مسبقاً.");
     }
 
@@ -2700,7 +2700,10 @@ class SM_Public {
             'message' => wp_kses_post($_POST['message']),
             'severity' => sanitize_text_field($_POST['severity']),
             'must_acknowledge' => !empty($_POST['must_acknowledge']) ? 1 : 0,
-            'status' => sanitize_text_field($_POST['status'] ?? 'active')
+            'status' => sanitize_text_field($_POST['status'] ?? 'active'),
+            'target_roles' => $_POST['target_roles'] ?? [],
+            'target_ranks' => $_POST['target_ranks'] ?? [],
+            'target_users' => sanitize_text_field($_POST['target_users'] ?? '')
         ];
 
         if (SM_DB::save_alert($data)) wp_send_json_success();

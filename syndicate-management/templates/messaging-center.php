@@ -280,7 +280,7 @@ $priorities = array(
                         <h4 style="margin: 0 0 15px 0; border-bottom: 1px solid #eee; padding-bottom: 10px;">بيانات مقدم الطلب</h4>
                         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; font-size: 13px;">
                             <div><label style="color: #94a3b8; display: block;">الاسم:</label><strong>${t.member_name}</strong></div>
-                            <div><label style="color: #94a3b8; display: block;">المحافظة:</label><strong>${t.member_province}</strong></div>
+                            <div><label style="color: #94a3b8; display: block;">الفرع:</label><strong>${t.member_province}</strong></div>
                             <div><label style="color: #94a3b8; display: block;">رقم الهاتف:</label><strong>${t.member_phone}</strong></div>
                             <div><label style="color: #94a3b8; display: block;">تاريخ الفتح:</label><strong>${t.created_at}</strong></div>
                         </div>

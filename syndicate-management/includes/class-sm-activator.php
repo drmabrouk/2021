@@ -406,6 +406,7 @@ class SM_Activator {
 
         self::fix_services_schema();
         self::fix_surveys_schema();
+        self::fix_alerts_schema();
         self::setup_roles();
         self::seed_notification_templates();
         self::seed_publishing_templates();
@@ -467,7 +468,7 @@ class SM_Activator {
             'experience_cert' => [
                 'title' => 'شهادة خبرة معتمدة',
                 'doc_type' => 'certificate',
-                'content' => '<div style="text-align:center;"><p>تشهد النقابة العامة بأن السيد العضو / <strong>{MEMBER_NAME}</strong></p><p>المقيد برقم قيد: {MEMBERSHIP_NO} ومحافظة: {GOVERNORATE}</p><p>قد اجتاز كافة المتطلبات المهنية المقررة ويعتبر ممارساً معتمداً في تخصصه.</p></div>'
+                'content' => '<div style="text-align:center;"><p>تشهد النقابة العامة بأن السيد العضو / <strong>{MEMBER_NAME}</strong></p><p>المقيد برقم قيد: {MEMBERSHIP_NO} وفرع: {GOVERNORATE}</p><p>قد اجتاز كافة المتطلبات المهنية المقررة ويعتبر ممارساً معتمداً في تخصصه.</p></div>'
             ],
             'official_report' => [
                 'title' => 'تقرير فني رسمي',
@@ -790,6 +791,28 @@ class SM_Activator {
         $type_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'test_type'));
         if (empty($type_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD test_type varchar(100) DEFAULT 'practice' AFTER specialty");
+        }
+    }
+
+    private static function fix_alerts_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_alerts';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $cols = [
+            'target_roles' => 'text',
+            'target_ranks' => 'text',
+            'target_users' => 'text'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER status");
+            }
         }
     }
 
