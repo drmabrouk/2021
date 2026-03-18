@@ -26,7 +26,7 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
 
     <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button class="sm-tab-btn sm-active" onclick="smOpenInternalTab('available-services', this)">الخدمات المتاحة</button>
-        <button class="sm-tab-btn" onclick="smOpenInternalTab('requests-history', this)"><?php echo $is_official ? 'طلبات الأعضاء' : 'طلباتي السابقة'; ?></button>
+        <button class="sm-tab-btn" onclick="smOpenInternalTab('requests-history', this)"><?php echo $is_official ? 'طلبات الخدمات' : 'طلباتي السابقة'; ?></button>
         <?php if ($is_official): ?>
             <button class="sm-tab-btn" onclick="smOpenInternalTab('deleted-services', this)">الخدمات المحذوفة</button>
         <?php endif; ?>
@@ -138,9 +138,23 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                     if (empty($target_requests)): ?>
                         <tr><td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">لا توجد طلبات سابقة مسجلة في النظام.</td></tr>
                     <?php else:
+                        $union_statuses = [
+                            'pending' => 'قيد الانتظار',
+                            'under_review' => 'قيد المراجعة الفنية',
+                            'processing' => 'جاري التنفيذ',
+                            'awaiting_payment' => 'بانتظار السداد',
+                            'payment_verified' => 'تم تأكيد الدفع',
+                            'approved' => 'مكتمل / معتمد',
+                            'issued' => 'تم إصدار المستند',
+                            'delivered' => 'تم التسليم للعضو',
+                            'rejected' => 'مرفوض',
+                            'cancelled' => 'ملغى من العضو',
+                            'on_hold' => 'معلق مؤقتاً',
+                            'needs_info' => 'نقص في البيانات'
+                        ];
                         foreach ($target_requests as $r):
-                            $status_label = ['pending'=>'قيد الانتظار', 'processing'=>'جاري التنفيذ', 'approved'=>'مكتمل / معتمد', 'rejected'=>'مرفوض'][$r->status];
-                            $status_class = ['pending'=>'sm-badge-low', 'processing'=>'sm-badge-mid', 'approved'=>'sm-badge-high', 'rejected'=>'sm-badge-urgent'][$r->status] ?? 'sm-badge-low';
+                            $status_label = $union_statuses[$r->status] ?? $r->status;
+                            $status_class = in_array($r->status, ['approved', 'issued', 'delivered', 'payment_verified']) ? 'sm-badge-high' : (in_array($r->status, ['rejected', 'cancelled']) ? 'sm-badge-urgent' : 'sm-badge-low');
 
                             // Get member details for better display
                             $m_gov = SM_Settings::get_governorates()[$r->governorate] ?? $r->governorate;
@@ -177,12 +191,9 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                                                     <span class="dashicons dashicons-portfolio"></span> الأرشيف الرقمي
                                                 </a>
                                             <?php endif; ?>
-                                            <?php if ($is_official && in_array($r->status, ['pending', 'processing'])): ?>
-                                                <a href="javascript:void(0)" onclick="processRequest(<?php echo $r->id; ?>, 'approved')" class="sm-action-item" style="font-weight: 800; color: var(--sm-primary-color);">
-                                                    <span class="dashicons dashicons-yes-alt"></span> اعتماد الطلب
-                                                </a>
-                                                <a href="javascript:void(0)" onclick="processRequest(<?php echo $r->id; ?>, 'rejected')" class="sm-action-item" style="color: #e53e3e;">
-                                                    <span class="dashicons dashicons-dismiss"></span> رفض الطلب
+                                            <?php if ($is_official): ?>
+                                                <a href="javascript:void(0)" onclick="smOpenProcessModal(<?php echo $r->id; ?>, '<?php echo $r->status; ?>', '<?php echo esc_js($r->admin_notes); ?>')" class="sm-action-item" style="font-weight: 800; color: var(--sm-primary-color);">
+                                                    <span class="dashicons dashicons-yes-alt"></span> تحديث الحالة والملاحظات
                                                 </a>
                                             <?php endif; ?>
                                         </div>
@@ -283,6 +294,26 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
     <div class="sm-modal-content" style="max-width: 600px;">
         <div class="sm-modal-header"><h3>تفاصيل الطلب</h3><button class="sm-modal-close" onclick="document.getElementById('view-request-modal').style.display='none'">&times;</button></div>
         <div id="request-details-body" style="padding: 20px;"></div>
+    </div>
+</div>
+
+<div id="process-request-modal" class="sm-modal-overlay">
+    <div class="sm-modal-content" style="max-width: 500px;">
+        <div class="sm-modal-header"><h3>تحديث حالة الطلب</h3><button class="sm-modal-close" onclick="document.getElementById('process-request-modal').style.display='none'">&times;</button></div>
+        <form id="process-request-form" style="padding: 20px;">
+            <input type="hidden" name="id" id="proc-req-id">
+            <div class="sm-form-group">
+                <label class="sm-label">الحالة الجديدة:</label>
+                <select name="status" id="proc-req-status" class="sm-select">
+                    <?php foreach($union_statuses as $slug => $label) echo "<option value='$slug'>$label</option>"; ?>
+                </select>
+            </div>
+            <div class="sm-form-group">
+                <label class="sm-label">ملاحظات إدارية (تظهر للعضو عند التتبع):</label>
+                <textarea name="notes" id="proc-req-notes" class="sm-textarea" rows="4"></textarea>
+            </div>
+            <button type="submit" class="sm-btn" style="width: 100%;">حفظ التحديثات</button>
+        </form>
     </div>
 </div>
 
@@ -540,22 +571,28 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
         $('#view-request-modal').fadeIn().css('display', 'flex');
     };
 
-    window.processRequest = function(id, status) {
-        if (!confirm('هل أنت متأكد من تغيير حالة الطلب؟')) return;
-        const fd = new FormData();
+    window.smOpenProcessModal = function(id, status, notes) {
+        $('#proc-req-id').val(id);
+        $('#proc-req-status').val(status);
+        $('#proc-req-notes').val(notes);
+        $('#process-request-modal').fadeIn().css('display', 'flex');
+    };
+
+    $('#process-request-form').on('submit', function(e) {
+        e.preventDefault();
+        const fd = new FormData(this);
         fd.append('action', 'sm_process_service_request');
-        fd.append('id', id);
-        fd.append('status', status);
         fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+
         fetch(ajaxurl, {method: 'POST', body: fd}).then(r=>r.json()).then(res=>{
             if (res.success) {
-                smShowNotification('تم تحديث حالة الطلب');
+                smShowNotification('تم تحديث الطلب بنجاح');
                 setTimeout(() => location.reload(), 1000);
             } else {
                 smShowNotification(res.data, true);
             }
         });
-    };
+    });
 
     window.smRollbackLog = function(logId) {
         if (!confirm('هل أنت متأكد من استعادة هذه الخدمة؟')) return;

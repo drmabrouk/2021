@@ -311,6 +311,7 @@ class SM_Activator {
         $sql .= "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             template_id mediumint(9),
+            member_id mediumint(9) DEFAULT 0,
             serial_number varchar(50) NOT NULL,
             title varchar(255) NOT NULL,
             content longtext NOT NULL,
@@ -407,6 +408,7 @@ class SM_Activator {
         self::fix_services_schema();
         self::fix_surveys_schema();
         self::fix_alerts_schema();
+        self::fix_service_requests_schema();
         self::setup_roles();
         self::seed_notification_templates();
         self::seed_publishing_templates();
@@ -491,6 +493,24 @@ class SM_Activator {
                     'content' => $data['content']
                 ]);
             }
+        }
+    }
+
+    private static function fix_service_requests_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_service_requests';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        // Change status to support custom strings (not just enum)
+        $wpdb->query("ALTER TABLE $table_name MODIFY status varchar(100) DEFAULT 'pending'");
+
+        // Add admin_notes
+        $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'admin_notes'));
+        if (empty($exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD admin_notes text AFTER status");
         }
     }
 

@@ -324,6 +324,10 @@ class SM_Public {
                                 <div style="grid-column: span 3; border-top: 1px solid #e2e8f0; padding-top:20px; margin-top:5px;">
                                     <span class="sm-tracking-label" style="color:#64748b;">مقدم الطلب:</span><span class="sm-tracking-value" style="color:var(--sm-dark-color);">${r.member}</span>
                                 </div>
+                                ${r.notes ? `
+                                <div style="grid-column: span 3; border-top: 1px solid #e2e8f0; padding-top:20px; margin-top:5px;">
+                                    <span class="sm-tracking-label" style="color:#64748b;">ملاحظات الإدارة:</span><span class="sm-tracking-value" style="color:#e53e3e; font-weight:800;">${r.notes}</span>
+                                </div>` : ''}
                             </div>
                         `;
                     } else {
@@ -1820,13 +1824,14 @@ class SM_Public {
 
         $id = intval($_POST['id']);
         $status = sanitize_text_field($_POST['status']);
+        $notes = sanitize_textarea_field($_POST['notes'] ?? '');
 
         global $wpdb;
         $req = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_service_requests WHERE id = %d", $id));
         if (!$req) wp_send_json_error('Request not found');
 
         $service = $wpdb->get_row($wpdb->prepare("SELECT fees, name FROM {$wpdb->prefix}sm_services WHERE id = %d", $req->service_id));
-        $res = SM_DB::update_service_request_status($id, $status, ($status === 'approved' && $service) ? $service->fees : null);
+        $res = SM_DB::update_service_request_status($id, $status, ($status === 'approved' && $service) ? $service->fees : null, $notes);
 
         if ($res) {
              if ($status === 'approved') {
@@ -2763,20 +2768,22 @@ class SM_Public {
         $data = [
             'title' => sanitize_text_field($_POST['title']),
             'content' => wp_kses_post($_POST['content']),
+            'member_id' => intval($_POST['member_id'] ?? 0),
             'options' => [
                 'doc_type' => sanitize_text_field($_POST['doc_type'] ?? 'report'),
                 'fees' => floatval($_POST['fees'] ?? 0),
-                'header' => !empty($_POST['header']),
-                'footer' => !empty($_POST['footer']),
-                'qr' => !empty($_POST['qr']),
-                'barcode' => !empty($_POST['barcode']),
+                'header' => isset($_POST['header']) && $_POST['header'] === 'on',
+                'footer' => isset($_POST['footer']) && $_POST['footer'] === 'on',
+                'qr' => isset($_POST['qr']) && $_POST['qr'] === 'on',
+                'barcode' => isset($_POST['barcode']) && $_POST['barcode'] === 'on',
                 'frame_type' => sanitize_text_field($_POST['frame_type'] ?? 'none')
             ]
         ];
 
         $doc_id = SM_DB::generate_pub_document($data);
         if ($doc_id) {
-            wp_send_json_success(['url' => admin_url('admin-ajax.php?action=sm_print_pub_doc&id=' . $doc_id . '&format=' . $data['format'])]);
+            $format = sanitize_text_field($_POST['format'] ?? 'pdf');
+            wp_send_json_success(['url' => admin_url('admin-ajax.php?action=sm_print_pub_doc&id=' . $doc_id . '&format=' . $format)]);
         } else {
             wp_send_json_error('Failed to generate document');
         }
@@ -2997,12 +3004,26 @@ class SM_Public {
 
         if (!$req) wp_send_json_error('لم يتم العثور على طلب بهذا الكود');
 
-        $status_map = ['pending'=>'قيد الانتظار', 'processing'=>'جاري التنفيذ', 'approved'=>'مكتمل / معتمد', 'rejected'=>'مرفوض'];
+        $union_statuses = [
+            'pending' => 'قيد الانتظار',
+            'under_review' => 'قيد المراجعة الفنية',
+            'processing' => 'جاري التنفيذ',
+            'awaiting_payment' => 'بانتظار السداد',
+            'payment_verified' => 'تم تأكيد الدفع',
+            'approved' => 'مكتمل / معتمد',
+            'issued' => 'تم إصدار المستند',
+            'delivered' => 'تم التسليم للعضو',
+            'rejected' => 'مرفوض',
+            'cancelled' => 'ملغى من العضو',
+            'on_hold' => 'معلق مؤقتاً',
+            'needs_info' => 'نقص في البيانات'
+        ];
 
         wp_send_json_success([
             'id' => $req->id,
             'service' => $req->service_name,
-            'status' => $status_map[$req->status] ?? $req->status,
+            'status' => $union_statuses[$req->status] ?? $req->status,
+            'notes' => $req->admin_notes ?? '',
             'date' => date('Y-m-d', strtotime($req->created_at)),
             'member' => $req->member_name ?: 'طلب خارجي'
         ]);
