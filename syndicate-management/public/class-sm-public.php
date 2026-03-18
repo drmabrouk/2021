@@ -1778,15 +1778,27 @@ class SM_Public {
         $results = [];
 
         if ($type === 'all') {
+            // Intelligent Search: Try exact first, then fuzzy for name
             $member = $wpdb->get_row($wpdb->prepare(
                 "SELECT * FROM {$wpdb->prefix}sm_members
                  WHERE national_id = %s
                  OR membership_number = %s
                  OR license_number = %s
                  OR facility_number = %s
+                 OR name = %s
                  LIMIT 1",
-                $val, $val, $val, $val
+                $val, $val, $val, $val, $val
             ));
+
+            if (!$member) {
+                // Fuzzy match for name if 3+ chars
+                if (strlen($val) >= 3) {
+                    $member = $wpdb->get_row($wpdb->prepare(
+                        "SELECT * FROM {$wpdb->prefix}sm_members WHERE name LIKE %s LIMIT 1",
+                        '%' . $wpdb->esc_like($val) . '%'
+                    ));
+                }
+            }
 
             if (!$member) {
                 $user = get_user_by('login', $val);
@@ -1972,6 +1984,46 @@ class SM_Public {
         }
 
         wp_send_json_success();
+    }
+
+    public function ajax_verify_suggest() {
+        global $wpdb;
+        $query = sanitize_text_field($_GET['query'] ?? '');
+        $type = sanitize_text_field($_GET['type'] ?? 'all');
+
+        if (strlen($query) < 3) wp_send_json_success([]);
+
+        $suggestions = [];
+        $search = '%' . $wpdb->esc_like($query) . '%';
+
+        if ($type === 'all') {
+            $results = $wpdb->get_results($wpdb->prepare(
+                "SELECT name, national_id FROM {$wpdb->prefix}sm_members
+                 WHERE name LIKE %s OR national_id LIKE %s LIMIT 5",
+                $search, $search
+            ));
+            foreach ($results as $r) {
+                $suggestions[] = $r->name;
+                $suggestions[] = $r->national_id;
+            }
+        } elseif ($type === 'membership') {
+            $suggestions = $wpdb->get_col($wpdb->prepare(
+                "SELECT membership_number FROM {$wpdb->prefix}sm_members WHERE membership_number LIKE %s LIMIT 5",
+                $search
+            ));
+        } elseif ($type === 'license') {
+            $suggestions = $wpdb->get_col($wpdb->prepare(
+                "SELECT facility_number FROM {$wpdb->prefix}sm_members WHERE facility_number LIKE %s LIMIT 5",
+                $search
+            ));
+        } elseif ($type === 'practice') {
+            $suggestions = $wpdb->get_col($wpdb->prepare(
+                "SELECT license_number FROM {$wpdb->prefix}sm_members WHERE license_number LIKE %s LIMIT 5",
+                $search
+            ));
+        }
+
+        wp_send_json_success(array_values(array_unique(array_filter($suggestions))));
     }
 
     public function handle_form_submission() {
