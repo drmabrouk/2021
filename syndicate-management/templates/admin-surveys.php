@@ -1,7 +1,7 @@
 <?php if (!defined('ABSPATH')) exit; global $wpdb; ?>
 <div class="sm-surveys-container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h3 style="margin:0;">إدارة اختبارات مزاولة المهنة</h3>
+        <h3 style="margin:0;">إدارة اختبارات الممارسة المهنية</h3>
         <button class="sm-btn" onclick="smOpenNewSurveyModal()" style="width: auto;">+ إنشاء اختبار جديد</button>
     </div>
 
@@ -77,7 +77,7 @@
 <div id="new-survey-modal" class="sm-modal-overlay">
     <div class="sm-modal-content" style="max-width: 700px;">
         <div class="sm-modal-header">
-            <h3>إعداد اختبار مهني جديد</h3>
+            <h3>إعداد اختبار ممارسة مهنية جديد</h3>
             <button class="sm-modal-close" onclick="this.closest('.sm-modal-overlay').style.display='none'">&times;</button>
         </div>
         <div class="sm-modal-body">

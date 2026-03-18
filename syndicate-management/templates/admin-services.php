@@ -26,7 +26,7 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
 
     <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button class="sm-tab-btn sm-active" onclick="smOpenInternalTab('available-services', this)">الخدمات المتاحة</button>
-        <button class="sm-tab-btn" onclick="smOpenInternalTab('requests-history', this)"><?php echo $is_official ? 'طلبات الخدمات' : 'طلباتي السابقة'; ?></button>
+        <button class="sm-tab-btn" onclick="smOpenInternalTab('requests-history', this)"><?php echo $is_official ? 'طلبات الخدمة' : 'طلباتي السابقة'; ?></button>
         <?php if ($is_official): ?>
             <button class="sm-tab-btn" onclick="smOpenInternalTab('deleted-services', this)">الخدمات المحذوفة</button>
         <?php endif; ?>
@@ -183,10 +183,10 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                                             <a href="javascript:void(0)" onclick='viewRequest(<?php echo json_encode($r); ?>)' class="sm-action-item">
                                                 <span class="dashicons dashicons-visibility"></span> تفاصيل البيانات
                                             </a>
+                                            <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_service_request&id=' . $r->id); ?>" target="_blank" class="sm-action-item" style="color: #27ae60;">
+                                                <span class="dashicons dashicons-printer"></span> طباعة PDF
+                                            </a>
                                             <?php if ($r->status == 'approved'): ?>
-                                                <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_service_request&id=' . $r->id); ?>" target="_blank" class="sm-action-item" style="color: #27ae60;">
-                                                    <span class="dashicons dashicons-printer"></span> طباعة المستند
-                                                </a>
                                                 <a href="<?php echo add_query_arg(['sm_tab' => 'member-profile', 'member_id' => $r->member_id, 'sub_tab' => 'documents']); ?>" class="sm-action-item">
                                                     <span class="dashicons dashicons-portfolio"></span> الأرشيف الرقمي
                                                 </a>
