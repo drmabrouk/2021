@@ -3,7 +3,7 @@
 $request_id = intval($_GET['id']);
 global $wpdb;
 $req = $wpdb->get_row($wpdb->prepare("
-    SELECT r.*, s.name as service_name, s.description as service_desc, s.selected_profile_fields, m.name as member_name, m.national_id, m.membership_number, m.governorate, m.professional_grade, m.specialization, m.phone, m.email, m.facility_name
+    SELECT r.*, s.name as service_name, s.description as service_desc, s.selected_profile_fields, s.required_fields as service_fields, m.name as member_name, m.national_id, m.membership_number, m.governorate, m.professional_grade, m.specialization, m.phone, m.email, m.facility_name
     FROM {$wpdb->prefix}sm_service_requests r
     JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
     LEFT JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
@@ -13,6 +13,22 @@ if (!$req) wp_die('Request not found');
 
 $syndicate = SM_Settings::get_syndicate_info();
 $data = json_decode($req->request_data, true);
+
+// Map field names to labels
+$field_labels = [];
+if (!empty($req->service_fields)) {
+    $fields_def = json_decode($req->service_fields, true);
+    if (is_array($fields_def)) {
+        foreach ($fields_def as $f) {
+            $field_labels[$f['name']] = $f['label'];
+        }
+    }
+}
+// Add common external fields
+$field_labels['cust_name'] = 'اسم العميل (خارجي)';
+$field_labels['cust_email'] = 'بريد العميل';
+$field_labels['cust_phone'] = 'هاتف العميل';
+$field_labels['cust_branch'] = 'فرع العميل';
 ?>
 <!DOCTYPE html>
 <html dir="rtl" lang="ar">
@@ -90,8 +106,10 @@ $data = json_decode($req->request_data, true);
             }
         }
         ?>
-        <?php foreach ($data as $label => $val): ?>
-            <tr><td><?php echo esc_html($label); ?>:</td><td><?php echo esc_html($val); ?></td></tr>
+        <?php foreach ($data as $key => $val):
+            $display_label = $field_labels[$key] ?? $key;
+        ?>
+            <tr><td><?php echo esc_html($display_label); ?>:</td><td><?php echo esc_html($val); ?></td></tr>
         <?php endforeach; ?>
     </table>
 

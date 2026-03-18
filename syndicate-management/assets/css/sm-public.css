@@ -498,6 +498,76 @@
     opacity: 1;
 }
 
+/* Redesigned Services Portal */
+.sm-service-card-modern {
+    background: #fff;
+    border: 1px solid var(--sm-border-color);
+    border-radius: 24px;
+    padding: 35px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+
+.sm-service-card-modern:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border-color: var(--sm-primary-color);
+}
+
+.sm-tracking-search-box {
+    background: linear-gradient(135deg, #fff 0%, #f9fafb 100%);
+    border: 1px solid #e2e8f0;
+    border-radius: 30px;
+    padding: 50px 40px;
+    margin-bottom: 60px;
+    color: var(--sm-dark-color);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+}
+
+.sm-btn-sleek {
+    background: var(--sm-dark-color);
+    color: #fff !important;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 15px;
+    font-weight: 700;
+    font-size: 14px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.sm-btn-sleek:hover {
+    opacity: 0.9;
+    transform: scale(1.05);
+    color: #fff !important;
+}
+
+.sm-category-btn {
+    text-align: right;
+    padding: 14px 20px;
+    border: 1px solid #f1f5f9;
+    border-radius: 14px;
+    background: #f8fafc;
+    color: #64748b;
+    font-weight: 600;
+    cursor: pointer;
+    transition: 0.3s;
+    font-family: 'Rubik', sans-serif;
+}
+
+.sm-category-btn:hover {
+    background: #f8fafc;
+    color: var(--sm-primary-color);
+}
+
+.sm-category-btn.active {
+    background: var(--sm-primary-color);
+    color: #fff !important;
+    box-shadow: 0 4px 6px -1px rgba(246, 48, 73, 0.2);
+}
+
 /* Public Pages Styling */
 .sm-public-page {
     background: #fff;

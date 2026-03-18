@@ -286,19 +286,50 @@ class SM_Public {
             </div>
 
             <div class="sm-services-layout" style="display: flex; gap: 40px; margin-top: 50px; align-items: flex-start;">
-                <!-- Right Sidebar: Categories -->
-                <div class="sm-services-sidebar" style="width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--sm-border-color); border-radius: 24px; padding: 30px; position: sticky; top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                <!-- Right Sidebar: Filters -->
+                <div class="sm-services-sidebar" style="width: 320px; flex-shrink: 0; background: #fff; border: 1px solid var(--sm-border-color); border-radius: 24px; padding: 30px; position: sticky; top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
                     <h4 style="margin: 0 0 25px 0; font-weight: 800; color: var(--sm-dark-color); display: flex; align-items: center; gap: 12px; font-size: 1.1em;">
-                        <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--sm-primary-color); color:#fff; border-radius:8px;"><span class="dashicons dashicons-filter" style="font-size: 18px; width: 18px; height: 18px;"></span></span> تصنيفات الخدمات
+                        <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--sm-primary-color); color:#fff; border-radius:8px;"><span class="dashicons dashicons-filter" style="font-size: 18px; width: 18px; height: 18px;"></span></span> فلترة الخدمات
                     </h4>
-                    <div class="sm-category-list" style="display: flex; flex-direction: column; gap: 10px;">
-                        <?php foreach ($categories as $cat): ?>
-                            <button class="sm-category-btn <?php echo $cat === 'الكل' ? 'active' : ''; ?>"
-                                    data-category="<?php echo esc_attr($cat); ?>"
-                                    style="text-align: right; padding: 14px 20px; border: 1px solid #f1f5f9; border-radius: 14px; background: #f8fafc; color: #64748b; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif;">
-                                <?php echo esc_html($cat); ?>
-                            </button>
-                        <?php endforeach; ?>
+
+                    <div style="margin-bottom: 25px;">
+                        <label class="sm-label" style="font-size: 13px; margin-bottom: 8px; display: block; color: #64748b;">البحث بالاسم:</label>
+                        <div style="position: relative;">
+                            <input type="text" id="sm_service_search_filter" placeholder="ابحث عن خدمة..."
+                                   style="width: 100%; padding: 12px 15px; border-radius: 12px; border: 1px solid #e2e8f0; font-family: 'Rubik', sans-serif; outline: none;"
+                                   oninput="smApplyServiceFilters()">
+                            <span class="dashicons dashicons-search" style="position: absolute; left: 10px; top: 10px; color: #94a3b8; font-size: 18px;"></span>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <label class="sm-label" style="font-size: 13px; margin-bottom: 8px; display: block; color: #64748b;">تصنيف الخدمة:</label>
+                        <select id="sm_service_cat_filter" class="sm-select" onchange="smApplyServiceFilters()" style="width: 100%; border-radius: 12px;">
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?php echo esc_attr($cat); ?>"><?php echo esc_html($cat); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 25px;">
+                        <label class="sm-label" style="font-size: 13px; margin-bottom: 8px; display: block; color: #64748b;">الفرع المتاح فيه:</label>
+                        <select id="sm_service_branch_filter" class="sm-select" onchange="smApplyServiceFilters()" style="width: 100%; border-radius: 12px;">
+                            <option value="all">جميع الفروع</option>
+                            <option value="hq">المركز الرئيسي</option>
+                            <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                        </select>
+                    </div>
+
+                    <div style="margin-bottom: 10px;">
+                        <label class="sm-label" style="font-size: 13px; margin-bottom: 8px; display: block; color: #64748b;">نوع الوصول:</label>
+                        <div style="display: grid; gap: 8px;">
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--sm-dark-color);">
+                                <input type="checkbox" class="sm_access_filter" value="public" checked onchange="smApplyServiceFilters()"> خدمات عامة
+                            </label>
+                            <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; font-weight: 500; color: var(--sm-dark-color);">
+                                <input type="checkbox" class="sm_access_filter" value="members" checked onchange="smApplyServiceFilters()"> خدمات الأعضاء فقط
+                            </label>
+                        </div>
                     </div>
                 </div>
 
@@ -313,8 +344,12 @@ class SM_Public {
                         <?php else: ?>
                             <?php foreach ($services as $s):
                                 $s_cat = $s->category ?: 'عام';
+                                $access_type = $s->requires_login ? 'members' : 'public';
                             ?>
-                                <div class="sm-service-card-modern" data-category="<?php echo esc_attr($s_cat); ?>"
+                                <div class="sm-service-card-modern"
+                                     data-category="<?php echo esc_attr($s_cat); ?>"
+                                     data-name="<?php echo esc_attr($s->name); ?>"
+                                     data-access="<?php echo $access_type; ?>"
                                      style="background: #fff; border: 1px solid var(--sm-border-color); border-radius: 24px; padding: 35px; display: flex; flex-direction: column; transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);">
                                     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
                                         <div class="sm-service-icon" style="width: 65px; height: 65px; background: linear-gradient(135deg, var(--sm-primary-color), var(--sm-secondary-color)); border-radius: 18px; display: flex; align-items: center; justify-content: center; color: #fff; box-shadow: 0 10px 15px -3px rgba(246, 48, 73, 0.3);">
@@ -399,16 +434,49 @@ class SM_Public {
                     if(res.success) {
                         const r = res.data;
                         area.innerHTML = `
-                            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:30px;">
-                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">نوع الخدمة</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.service}</span></div>
-                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">تاريخ التقديم</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.date}</span></div>
-                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">الحالة الحالية</span><span style="color:var(--sm-primary-color); font-weight:900; font-size:1.2em;">${r.status}</span></div>
-                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">مقدم الطلب</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.member}</span></div>
-                                ${r.notes ? `
-                                <div style="grid-column: span 2; background:#fff5f5; padding:25px; border-radius:15px; border:1px solid #feb2b2;">
-                                    <span class="sm-tracking-label" style="color:#c53030; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px;"><span class="dashicons dashicons-admin-comments"></span> ملاحظات الإدارة والمرفقات</span>
-                                    <div class="sm-tracking-value" style="color:#c53030; line-height:1.6; font-weight:500;">${r.notes}</div>
-                                </div>` : ''}
+                            <div style="overflow-x: auto;">
+                                <table style="width: 100%; border-collapse: separate; border-spacing: 0; background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid #f1f5f9;">
+                                    <thead style="background: #f8fafc;">
+                                        <tr>
+                                            <th style="padding: 15px 20px; text-align: right; font-weight: 800; color: var(--sm-dark-color); border-bottom: 2px solid #e2e8f0;">البيان</th>
+                                            <th style="padding: 15px 20px; text-align: right; font-weight: 800; color: var(--sm-dark-color); border-bottom: 2px solid #e2e8f0;">التفاصيل</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">كود التتبع</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: var(--sm-dark-color); font-weight: 800;">${code}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">نوع الخدمة</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: var(--sm-dark-color); font-weight: 700;">${r.service}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">مقدم الطلب</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9;">
+                                                <div style="font-weight: 700; color: var(--sm-dark-color);">${r.member}</div>
+                                                <div style="font-size: 12px; color: #94a3b8; margin-top: 4px;">${r.email} | ${r.phone}</div>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">الفرع</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: var(--sm-dark-color); font-weight: 700;">${r.branch}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">تاريخ التقديم</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: var(--sm-dark-color); font-weight: 700;">${r.date}</td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9; color: #64748b; font-weight: 600;">الحالة الحالية</td>
+                                            <td style="padding: 15px 20px; border-bottom: 1px solid #f1f5f9;"><span style="background: rgba(246, 48, 73, 0.1); color: var(--sm-primary-color); padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 14px;">${r.status}</span></td>
+                                        </tr>
+                                        ${r.notes ? `
+                                        <tr>
+                                            <td style="padding: 15px 20px; color: #c53030; font-weight: 800; background: #fff5f5;">ملاحظات الإدارة</td>
+                                            <td style="padding: 15px 20px; color: #c53030; font-weight: 600; background: #fff5f5;">${r.notes}</td>
+                                        </tr>` : ''}
+                                    </tbody>
+                                </table>
                             </div>
                         `;
                     } else {
@@ -445,7 +513,15 @@ class SM_Public {
                         <input type="hidden" name="service_id" value="${s.id}">
                         <div class="sm-form-step active" id="step-1">
                             <div class="sm-form-group"><label class="sm-label">الاسم الكامل:</label><input name="cust_name" class="sm-input" required></div>
+                            <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input name="cust_email" type="email" class="sm-input" required></div>
                             <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input name="cust_phone" class="sm-input" required></div>
+                            <div class="sm-form-group">
+                                <label class="sm-label">الفرع التابع له:</label>
+                                <select name="cust_branch" class="sm-select" required>
+                                    <option value="">-- اختر الفرع --</option>
+                                    <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                                </select>
+                            </div>
                             <button type="button" onclick="smMoveStep(2)" class="sm-btn" style="width:100%; margin-top:10px;">التالي</button>
                         </div>
                         <div class="sm-form-step" id="step-2">
@@ -464,7 +540,11 @@ class SM_Public {
                     const formData = new FormData(this);
                     const data = {};
                     formData.forEach((value, key) => {
-                        if(key.startsWith('field_')) data[key.replace('field_', '')] = value;
+                        if(key.startsWith('field_')) {
+                            data[key.replace('field_', '')] = value;
+                        } else if(key.startsWith('cust_')) {
+                            data[key] = value;
+                        }
                     });
 
                     const fd = new FormData();
@@ -498,35 +578,32 @@ class SM_Public {
                 document.getElementById('step-' + step).classList.add('active');
             };
 
-            document.addEventListener('DOMContentLoaded', function() {
-                const categoryButtons = document.querySelectorAll('.sm-category-btn');
+            window.smApplyServiceFilters = function() {
+                const searchQuery = document.getElementById('sm_service_search_filter').value.toLowerCase();
+                const selectedCat = document.getElementById('sm_service_cat_filter').value;
+                const selectedBranch = document.getElementById('sm_service_branch_filter').value;
+                const accessFilters = Array.from(document.querySelectorAll('.sm_access_filter:checked')).map(el => el.value);
                 const serviceCards = document.querySelectorAll('.sm-service-card-modern');
 
-                categoryButtons.forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const selectedCat = this.getAttribute('data-category');
+                serviceCards.forEach(card => {
+                    const name = card.dataset.name.toLowerCase();
+                    const category = card.dataset.category;
+                    const branch = card.dataset.branch;
+                    const access = card.dataset.access;
 
-                        // Update active state
-                        categoryButtons.forEach(b => b.classList.remove('active'));
-                        this.classList.add('active');
+                    const matchesSearch = name.includes(searchQuery);
+                    const matchesCategory = selectedCat === 'الكل' || category === selectedCat;
+                    const matchesBranch = selectedBranch === 'all' || branch === 'all' || branch === selectedBranch;
+                    const matchesAccess = accessFilters.includes(access);
 
-                        // Filter cards
-                        serviceCards.forEach(card => {
-                            if (selectedCat === 'الكل' || card.getAttribute('data-category') === selectedCat) {
-                                card.style.display = 'flex';
-                                // Simple animation
-                                card.style.opacity = '0';
-                                setTimeout(() => {
-                                    card.style.opacity = '1';
-                                    card.style.transition = 'opacity 0.4s ease';
-                                }, 50);
-                            } else {
-                                card.style.display = 'none';
-                            }
-                        });
-                    });
+                    if (matchesSearch && matchesCategory && matchesBranch && matchesAccess) {
+                        card.style.display = 'flex';
+                        card.style.opacity = '1';
+                    } else {
+                        card.style.display = 'none';
+                    }
                 });
-            });
+            };
         </script>
         <?php
         return ob_get_clean();
@@ -1703,6 +1780,7 @@ class SM_Public {
         $data = [
             'name' => sanitize_text_field($_POST['name']),
             'category' => sanitize_text_field($_POST['category'] ?? 'عام'),
+            'branch' => sanitize_text_field($_POST['branch'] ?? 'all'),
             'icon' => sanitize_text_field($_POST['icon'] ?? 'dashicons-cloud'),
             'requires_login' => isset($_POST['requires_login']) ? (int)$_POST['requires_login'] : 1,
             'description' => sanitize_textarea_field($_POST['description']),
@@ -1734,6 +1812,7 @@ class SM_Public {
             $data['name'] = sanitize_text_field($_POST['name']);
         }
         if (isset($_POST['category'])) $data['category'] = sanitize_text_field($_POST['category']);
+        if (isset($_POST['branch'])) $data['branch'] = sanitize_text_field($_POST['branch']);
         if (isset($_POST['icon'])) $data['icon'] = sanitize_text_field($_POST['icon']);
         if (isset($_POST['requires_login'])) $data['requires_login'] = (int)$_POST['requires_login'];
         if (isset($_POST['description'])) $data['description'] = sanitize_textarea_field($_POST['description']);
@@ -3174,7 +3253,7 @@ class SM_Public {
 
         global $wpdb;
         $req = $wpdb->get_row($wpdb->prepare(
-            "SELECT r.*, s.name as service_name, m.name as member_name
+            "SELECT r.*, s.name as service_name, m.name as member_name, m.email as member_email, m.phone as member_phone, m.governorate as member_branch
              FROM {$wpdb->prefix}sm_service_requests r
              JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
              LEFT JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
@@ -3183,6 +3262,19 @@ class SM_Public {
         ));
 
         if (!$req) wp_send_json_error('لم يتم العثور على طلب بهذا الكود');
+
+        $contact_info = [
+            'email' => $req->member_email ?: 'N/A',
+            'phone' => $req->member_phone ?: 'N/A',
+            'branch' => $req->member_branch ?: 'المركز الرئيسي'
+        ];
+
+        if ($req->member_id == 0) {
+            $data = json_decode($req->request_data, true);
+            $contact_info['email'] = $data['cust_email'] ?? 'N/A';
+            $contact_info['phone'] = $data['cust_phone'] ?? 'N/A';
+            $contact_info['branch'] = $data['cust_branch'] ?? 'طلب خارجي';
+        }
 
         $union_statuses = [
             'pending' => 'قيد الانتظار',
@@ -3205,7 +3297,10 @@ class SM_Public {
             'status' => $union_statuses[$req->status] ?? $req->status,
             'notes' => $req->admin_notes ?? '',
             'date' => date('Y-m-d', strtotime($req->created_at)),
-            'member' => $req->member_name ?: 'طلب خارجي'
+            'member' => $req->member_name ?: 'طلب خارجي',
+            'email' => $contact_info['email'],
+            'phone' => $contact_info['phone'],
+            'branch' => $contact_info['branch']
         ]);
     }
 
