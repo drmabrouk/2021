@@ -475,6 +475,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
             <?php if ($is_admin || $is_sys_admin || $is_syndicate_admin): ?>
                 <div style="display: flex; gap: 10px;">
                     <button onclick="window.location.href='<?php echo add_query_arg('sm_tab', 'global-archive'); ?>&sub_tab=finance'" class="sm-btn" style="background: #e67e22; height: 38px; font-size: 11px; color: white !important; width: auto;"><span class="dashicons dashicons-portfolio" style="font-size: 16px; margin-top: 4px;"></span> الأرشيف الرقمي</button>
+                    <button onclick="window.location.href='<?php echo add_query_arg('sm_tab', 'issue-document'); ?>'" class="sm-btn" style="background: #805ad5; height: 38px; font-size: 11px; color: white !important; width: auto;" title="إصدار مستند رسمي جديد"><span class="dashicons dashicons-media-spreadsheet" style="font-size: 16px; margin-top: 4px;"></span> إصدار مستند</button>
                     <button onclick="window.location.href='<?php echo add_query_arg('sm_tab', 'practice-licenses'); ?>&action=new'" class="sm-btn" style="background: #2c3e50; height: 38px; font-size: 11px; color: white !important; width: auto;" title="إصدار تصريح جديد">+ إصدار تصريح</button>
                     <button onclick="window.location.href='<?php echo add_query_arg('sm_tab', 'facility-licenses'); ?>&action=new'" class="sm-btn" style="background: #27ae60; height: 38px; font-size: 11px; color: white !important; width: auto;" title="تسجيل منشأة أو مؤسسة">+ تسجيل منشأة</button>
                 </div>
@@ -634,23 +635,13 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                 <?php endif; ?>
 
 
-                <?php if ($is_admin || $is_sys_admin || $is_syndicate_admin): ?>
-                    <li class="sm-sidebar-item <?php echo $active_tab == 'printing' ? 'sm-active' : ''; ?>">
-                        <a href="<?php echo add_query_arg('sm_tab', 'printing'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-printer"></span> مركز الطباعة والنشر</a>
-                    </li>
-                <?php endif; ?>
 
                 <?php if ($is_admin || $is_sys_admin || $is_syndicate_admin || $is_syndicate_member || $is_member): ?>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'digital-services' ? 'sm-active' : ''; ?>">
                         <a href="<?php echo add_query_arg('sm_tab', 'digital-services'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-cloud"></span> الخدمات الرقمية</a>
                     </li>
-                    <?php if ($is_admin || $is_sys_admin || $is_syndicate_admin): ?>
-                        <li class="sm-sidebar-item <?php echo $active_tab == 'global-archive' ? 'sm-active' : ''; ?>">
-                            <a href="<?php echo add_query_arg('sm_tab', 'global-archive'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-portfolio"></span> الأرشيف الرقمي</a>
-                        </li>
-                    <?php endif; ?>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'surveys' ? 'sm-active' : ''; ?>">
-                        <a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-welcome-learn-more"></span> <?php echo $labels['tab_surveys']; ?></a>
+                        <a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-welcome-learn-more"></span> اختبارات مزاولة المهنة</a>
                     </li>
                 <?php endif; ?>
 
@@ -758,11 +749,6 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                     break;
 
 
-                case 'printing':
-                    if ($is_admin || current_user_can('sm_print_reports')) {
-                        include SM_PLUGIN_DIR . 'templates/admin-publishing-center.php';
-                    }
-                    break;
 
 
 
@@ -780,6 +766,12 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
 
                 case 'digital-services':
                     include SM_PLUGIN_DIR . 'templates/admin-services.php';
+                    break;
+
+                case 'issue-document':
+                    if ($is_admin || $is_sys_admin || $is_syndicate_admin) {
+                        include SM_PLUGIN_DIR . 'templates/admin-issue-document.php';
+                    }
                     break;
 
                 case 'global-archive':

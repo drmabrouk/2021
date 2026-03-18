@@ -886,6 +886,15 @@ class SM_DB {
         $where = "1=1";
         $params = [];
 
+        $user = wp_get_current_user();
+        $has_full_access = current_user_can('sm_full_access') || current_user_can('manage_options');
+        $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
+
+        if (!$has_full_access && $my_gov) {
+            $where .= " AND m.governorate = %s";
+            $params[] = $my_gov;
+        }
+
         if (!empty($args['status'])) {
             $where .= " AND r.status = %s";
             $params[] = $args['status'];
@@ -909,10 +918,11 @@ class SM_DB {
         return $wpdb->get_results($query);
     }
 
-    public static function update_service_request_status($request_id, $status, $fees_paid = null) {
+    public static function update_service_request_status($request_id, $status, $fees_paid = null, $notes = '') {
         global $wpdb;
         $data = array(
             'status' => $status,
+            'admin_notes' => sanitize_textarea_field($notes),
             'processed_by' => get_current_user_id(),
             'updated_at' => current_time('mysql')
         );
@@ -1030,6 +1040,7 @@ class SM_DB {
 
         $res = $wpdb->insert($table, [
             'template_id' => intval($data['template_id'] ?? 0),
+            'member_id' => intval($data['member_id'] ?? 0),
             'serial_number' => $serial,
             'title' => sanitize_text_field($data['title']),
             'content' => $data['content'],
