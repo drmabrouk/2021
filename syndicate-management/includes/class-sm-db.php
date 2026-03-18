@@ -458,10 +458,12 @@ class SM_DB {
 
         $user = wp_get_current_user();
         $has_full_access = current_user_can('sm_full_access') || current_user_can('manage_options');
+        $is_officer = in_array('sm_syndicate_admin', (array)$user->roles);
         $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
 
         $where_member = "1=1";
-        if (!$has_full_access) {
+        // Union Officer (sm_syndicate_admin) must be restricted to their branch
+        if ($is_officer || !$has_full_access) {
             if ($my_gov) {
                 $where_member = $wpdb->prepare("governorate = %s", $my_gov);
             } else {
@@ -1300,7 +1302,10 @@ class SM_DB {
             'message' => wp_kses_post($data['message']),
             'severity' => sanitize_text_field($data['severity']),
             'must_acknowledge' => !empty($data['must_acknowledge']) ? 1 : 0,
-            'status' => sanitize_text_field($data['status'] ?? 'active')
+            'status' => sanitize_text_field($data['status'] ?? 'active'),
+            'target_roles' => !empty($data['target_roles']) ? json_encode((array)$data['target_roles']) : '',
+            'target_ranks' => !empty($data['target_ranks']) ? json_encode((array)$data['target_ranks']) : '',
+            'target_users' => sanitize_text_field($data['target_users'] ?? '')
         ];
 
         if (!empty($data['id'])) {
@@ -1331,18 +1336,49 @@ class SM_DB {
 
     public static function get_active_alerts_for_user($user_id) {
         global $wpdb;
-        // Fetch active alerts that the user hasn't acknowledged yet (if acknowledgment is required)
-        // or just all active alerts if they haven't seen them.
-        // Actually, requirement says "immediately for logged-in users".
-        // We should track which ones are seen.
+        $user = get_userdata($user_id);
+        if (!$user) return [];
 
-        return $wpdb->get_results($wpdb->prepare("
+        $roles = (array)$user->roles;
+        $rank = get_user_meta($user_id, 'sm_rank', true);
+
+        $alerts = $wpdb->get_results($wpdb->prepare("
             SELECT a.*
             FROM {$wpdb->prefix}sm_alerts a
             LEFT JOIN {$wpdb->prefix}sm_alert_views v ON a.id = v.alert_id AND v.user_id = %d
             WHERE a.status = 'active'
             AND v.id IS NULL
         ", $user_id));
+
+        $filtered = [];
+        foreach ($alerts as $a) {
+            $pass = true;
+
+            // Role targeting
+            if (!empty($a->target_roles)) {
+                $target_roles = json_decode($a->target_roles, true);
+                if (!empty($target_roles) && empty(array_intersect($roles, $target_roles))) $pass = false;
+            }
+
+            // Rank targeting
+            if ($pass && !empty($a->target_ranks)) {
+                $target_ranks = json_decode($a->target_ranks, true);
+                if (!empty($target_ranks) && !in_array($rank, $target_ranks)) $pass = false;
+            }
+
+            // User targeting (NID or Login)
+            if ($pass && !empty($a->target_users)) {
+                $target_users = array_map('trim', explode(',', $a->target_users));
+                if (!in_array($user->user_login, $target_users)) {
+                    $member = self::get_member_by_username($user->user_login);
+                    if (!$member || !in_array($member->national_id, $target_users)) $pass = false;
+                }
+            }
+
+            if ($pass) $filtered[] = $a;
+        }
+
+        return $filtered;
     }
 
     public static function acknowledge_alert($alert_id, $user_id) {

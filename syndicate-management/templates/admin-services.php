@@ -247,7 +247,7 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                         'specialization' => 'التخصص',
                         'phone' => 'رقم الهاتف',
                         'email' => 'البريد الإلكتروني',
-                        'governorate' => 'المحافظة',
+                        'governorate' => 'الفرع',
                         'facility_name' => 'اسم المنشأة'
                     ];
                     foreach ($profile_fields as $key => $label): ?>

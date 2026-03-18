@@ -108,7 +108,7 @@
                     <th>الرقم القومي / كود المستخدم</th>
                     <th>الاسم الكامل</th>
                     <th>الدور / الرتبة</th>
-                    <th>المحافظة</th>
+                    <th>الفرع</th>
                     <th>رقم التواصل</th>
                     <th>البريد الإلكتروني</th>
                     <th>الإجراءات</th>
@@ -250,9 +250,9 @@
                         </select>
                     </div>
                     <div class="sm-form-group">
-                        <label class="sm-label">المحافظة:</label>
+                        <label class="sm-label">الفرع:</label>
                         <select name="governorate" id="edit_off_gov" class="sm-select">
-                            <option value="">-- اختر المحافظة --</option>
+                            <option value="">-- اختر الفرع --</option>
                             <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
                         </select>
                     </div>
@@ -308,9 +308,9 @@
                         </select>
                     </div>
                     <div class="sm-form-group">
-                        <label class="sm-label">المحافظة:</label>
+                        <label class="sm-label">الفرع:</label>
                         <select name="governorate" class="sm-select">
-                            <option value="">-- اختر المحافظة --</option>
+                            <option value="">-- اختر الفرع --</option>
                             <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
                         </select>
                     </div>

@@ -80,7 +80,7 @@ $data = json_decode($req->request_data, true);
             'specialization' => ['label' => 'التخصص', 'value' => SM_Settings::get_specializations()[$req->specialization] ?? $req->specialization],
             'phone' => ['label' => 'رقم الهاتف', 'value' => $req->phone],
             'email' => ['label' => 'البريد الإلكتروني', 'value' => $req->email],
-            'governorate' => ['label' => 'المحافظة', 'value' => SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate],
+            'governorate' => ['label' => 'الفرع', 'value' => SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate],
             'facility_name' => ['label' => 'اسم المنشأة', 'value' => $req->facility_name]
         ];
 
