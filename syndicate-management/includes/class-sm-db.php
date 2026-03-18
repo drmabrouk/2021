@@ -712,7 +712,7 @@ class SM_DB {
             'user_id' => intval($user_id),
             'assigned_by' => intval($assigned_by),
             'status' => 'assigned',
-            'assigned_at' => current_time('mysql')
+            'created_at' => current_time('mysql')
         ]);
     }
 

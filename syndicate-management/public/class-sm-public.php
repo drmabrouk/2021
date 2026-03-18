@@ -1274,6 +1274,7 @@ class SM_Public {
 
         update_user_meta($user_id, 'sm_temp_pass', $pass);
         update_user_meta($user_id, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
+        if (isset($_POST['national_id'])) update_user_meta($user_id, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($user_id, 'sm_phone', sanitize_text_field($_POST['phone']));
         update_user_meta($user_id, 'sm_rank', sanitize_text_field($_POST['rank']));
         update_user_meta($user_id, 'sm_account_status', 'active');
