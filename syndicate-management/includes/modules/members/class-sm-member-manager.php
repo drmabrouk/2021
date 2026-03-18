@@ -71,7 +71,7 @@ class SM_Member_Manager {
         if (!current_user_can('sm_manage_members')) {
             wp_send_json_error('Unauthorized');
         }
-        check_ajax_referer('sm_admin_action', 'sm_nonce');
+        check_ajax_referer('sm_admin_action', 'nonce');
         $mid = intval($_POST['member_id']);
         $uid = intval($_POST['wp_user_id']);
         $email = sanitize_email($_POST['email']);

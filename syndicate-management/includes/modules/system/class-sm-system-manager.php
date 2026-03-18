@@ -10,9 +10,24 @@ class SM_System_Manager {
         }
         check_ajax_referer('sm_admin_action', 'nonce');
         if (SM_DB::save_branch($_POST) !== false) {
+            SM_Logger::log('حفظ بيانات فرع', "تم حفظ بيانات الفرع: " . sanitize_text_field($_POST['name'] ?? ''));
             wp_send_json_success();
         } else {
             wp_send_json_error('Failed to save branch');
+        }
+    }
+
+    public static function ajax_delete_branch() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $id = intval($_POST['id']);
+        if (SM_DB::delete_branch($id)) {
+            SM_Logger::log('حذف فرع', "تم حذف الفرع رقم #$id");
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed to delete branch');
         }
     }
 

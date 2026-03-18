@@ -79,6 +79,11 @@ class SM_DB_Members {
             $params[] = $args['membership_status'];
         }
 
+        if (isset($args['governorate']) && !empty($args['governorate'])) {
+            $query .= " AND governorate = %s";
+            $params[] = $args['governorate'];
+        }
+
         if (isset($args['search']) && !empty($args['search'])) {
             $query .= " AND (name LIKE %s OR national_id LIKE %s OR membership_number LIKE %s)";
             $params[] = '%' . $wpdb->esc_like($args['search']) . '%';

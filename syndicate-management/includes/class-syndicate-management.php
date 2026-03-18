@@ -99,6 +99,7 @@ class Syndicate_Management {
             'sm_submit_survey_response' => ['SM_Education_Manager', 'ajax_submit_survey_response'],
 
             'sm_save_branch' => ['SM_System_Manager', 'ajax_save_branch'],
+            'sm_delete_branch' => ['SM_System_Manager', 'ajax_delete_branch'],
             'sm_save_alert' => ['SM_System_Manager', 'ajax_save_alert'],
             'sm_reset_system_ajax' => ['SM_System_Manager', 'ajax_reset_system'],
             'sm_rollback_log_ajax' => ['SM_System_Manager', 'ajax_rollback_log'],

@@ -626,6 +626,9 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                 <?php endif; ?>
 
                 <?php if (!$is_restricted && ($is_admin || $is_sys_admin || $is_syndicate_admin)): ?>
+                    <li class="sm-sidebar-item <?php echo $active_tab == 'branches' ? 'sm-active' : ''; ?>">
+                        <a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'branches']); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-networking"></span> فروع النقابة</a>
+                    </li>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'finance' ? 'sm-active' : ''; ?>">
                         <a href="<?php echo add_query_arg('sm_tab', 'finance'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-money-alt"></span> المحاسبة والمالية</a>
                     </li>
@@ -796,7 +799,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                         <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
                             <button class="sm-tab-btn <?php echo ($sub == 'alerts') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-alerts-settings', this)">تنبيهات النظام</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'staff') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-users-settings', this)">إدارة مستخدمي النظام</button>
-                            <button class="sm-tab-btn <?php echo ($sub == 'branches') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('syndicate-branches-settings', this)">فروع النقابة</button>
+                            <button id="sm-tab-branches-trigger" class="sm-tab-btn <?php echo ($sub == 'branches') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('syndicate-branches-settings', this)">فروع النقابة</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'backup') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('backup-settings', this)">مركز النسخ الاحتياطي</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'emails') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-email-settings', this)">إعدادات البريد</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'logs') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('activity-logs', this)">سجل النشاطات</button>
@@ -834,7 +837,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                                             if (empty($alerts)): ?>
                                                 <tr><td colspan="5" style="text-align:center; padding:30px; color:#94a3b8;">لا توجد تنبيهات نشطة حالياً.</td></tr>
                                             <?php else: foreach($alerts as $al):
-                                                $severity_map = ['info' => 'عادي (White)', 'warning' => 'تحذير (Orange)', 'critical' => 'هام جداً (Red)'];
+                                                $severity_map = ['info' => 'عادي', 'warning' => 'تحذير', 'critical' => 'هام جداً'];
                                                 $severity_color = ['info' => '#64748b', 'warning' => '#f59e0b', 'critical' => '#e53e3e'];
                                             ?>
                                                 <tr>
@@ -1050,26 +1053,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
 
                                 <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--sm-shadow);">
                                     <h4 style="margin-top:0; border-bottom:2px solid #f1f5f9; padding-bottom:12px; color: var(--sm-dark-color); display: flex; align-items: center; gap: 10px;">
-                                        <span class="dashicons dashicons-building"></span> بيانات السلطة العليا (Authority Data)
-                                    </h4>
-                                    <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:15px;">
-                                        <div class="sm-form-group">
-                                            <label class="sm-label">اسم السلطة المشرفة:</label>
-                                            <input type="text" name="authority_name" value="<?php echo esc_attr($syndicate['authority_name'] ?? ''); ?>" class="sm-input" placeholder="مثال: وزارة الشباب والرياضة">
-                                        </div>
-                                        <div class="sm-form-group">
-                                            <label class="sm-label">شعار السلطة:</label>
-                                            <div style="display:flex; gap:10px;">
-                                                <input type="text" name="authority_logo" id="sm_authority_logo_url" value="<?php echo esc_attr($syndicate['authority_logo'] ?? ''); ?>" class="sm-input">
-                                                <button type="button" onclick="smOpenMediaUploader('sm_authority_logo_url')" class="sm-btn" style="width:auto; font-size:12px; background:#4a5568;">اختيار</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div style="background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 25px; margin-bottom: 25px; box-shadow: var(--sm-shadow);">
-                                    <h4 style="margin-top:0; border-bottom:2px solid #f1f5f9; padding-bottom:12px; color: var(--sm-dark-color); display: flex; align-items: center; gap: 10px;">
-                                        <span class="dashicons dashicons-groups"></span> بيانات النقابة (Union Data)
+                                        <span class="dashicons dashicons-groups"></span> بيانات النقابة
                                     </h4>
                                     <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px; margin-top:15px;">
                                         <div class="sm-form-group"><label class="sm-label">اسم النقابة كاملاً:</label><input type="text" name="syndicate_name" value="<?php echo esc_attr($syndicate['syndicate_name']); ?>" class="sm-input"></div>
@@ -1092,7 +1076,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
 
                                 <div style="background: #f8fafc; border: 1px solid #cbd5e0; border-radius: 12px; padding: 25px; margin-bottom: 25px;">
                                     <h4 style="margin-top:0; border-bottom:2px solid #cbd5e0; padding-bottom:12px; color: var(--sm-dark-color); display: flex; align-items: center; gap: 10px;">
-                                        <span class="dashicons dashicons-admin-settings"></span> مسميات أقسام النظام وتصنيفات التخصصات (System Mapping)
+                                        <span class="dashicons dashicons-admin-settings"></span> مسميات أقسام النظام وتصنيفات التخصصات
                                     </h4>
                                     <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:15px; margin-top:15px;">
                                         <?php foreach($labels as $key => $val): ?>
@@ -1276,9 +1260,9 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                 <div class="sm-form-group">
                     <label class="sm-label">مستوى الخطورة:</label>
                     <select name="severity" class="sm-select">
-                        <option value="info">عادي (White)</option>
-                        <option value="warning">تحذير (Orange)</option>
-                        <option value="critical">هام (Red)</option>
+                        <option value="info">عادي</option>
+                        <option value="warning">تحذير</option>
+                        <option value="critical">هام جداً</option>
                     </select>
                 </div>
                 <div class="sm-form-group">

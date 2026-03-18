@@ -69,7 +69,11 @@ $degrees = SM_Settings::get_academic_degrees();
                                         case 'national_id': $label = 'الرقم القومي'; break;
                                         case 'phone': $label = 'الهاتف'; break;
                                         case 'email': $label = 'البريد'; break;
-                                        case 'governorate': $label = 'الفرع'; $v = $govs[$v] ?? $v; $old_val = $govs[$old_val] ?? $old_val; break;
+                                        case 'governorate':
+                                            $label = 'الفرع';
+                                            $v = SM_Settings::get_branch_name($v);
+                                            $old_val = SM_Settings::get_branch_name($old_val);
+                                            break;
                                         case 'specialization': $label = 'التخصص'; $v = $specs[$v] ?? $v; $old_val = $specs[$old_val] ?? $old_val; break;
                                         case 'professional_grade': $label = 'الدرجة'; $v = $grades[$v] ?? $v; $old_val = $grades[$old_val] ?? $old_val; break;
                                         case 'university': $label = 'الجامعة'; $v = $univs[$v] ?? $v; $old_val = $univs[$old_val] ?? $old_val; break;

@@ -63,6 +63,21 @@ if ($import_results) {
                 </select>
             </div>
 
+            <div class="sm-form-group" style="margin-bottom:0;">
+                <label class="sm-label">الفرع:</label>
+                <select name="gov_filter" class="sm-select">
+                    <option value="">كل الفروع</option>
+                    <?php
+                    $db_branches = SM_DB::get_branches_data();
+                    if (!empty($db_branches)) {
+                        foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."' ".selected($_GET['gov_filter'] ?? '', $db->slug, false).">".esc_html($db->name)."</option>";
+                    } else {
+                        foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k' ".selected($_GET['gov_filter'] ?? '', $k, false).">$v</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+
             <div style="display: flex; gap: 10px;">
                 <button type="submit" class="sm-btn">بحث</button>
                 <a href="<?php echo add_query_arg('sm_tab', 'members', remove_query_arg(['member_search', 'grade_filter', 'spec_filter', 'status_filter'])); ?>" class="sm-btn sm-btn-outline" style="text-decoration:none;">إعادة ضبط</a>
@@ -103,6 +118,7 @@ if ($import_results) {
                     <th>الاسم</th>
                     <th>الدرجة الوظيفية</th>
                     <th>التخصص</th>
+                    <th>الفرع</th>
                     <th>رقم العضوية</th>
                     <th>المبلغ المستحق</th>
                     <th>الإجراءات</th>
@@ -117,6 +133,7 @@ if ($import_results) {
                     'search' => $_GET['member_search'] ?? '',
                     'professional_grade' => $_GET['grade_filter'] ?? '',
                     'specialization' => $_GET['spec_filter'] ?? '',
+                    'governorate' => $_GET['gov_filter'] ?? '',
                     'limit' => $limit,
                     'offset' => $offset
                 ));
@@ -135,6 +152,7 @@ if ($import_results) {
                             <td style="font-weight: 800;"><?php echo esc_html($member->name); ?></td>
                             <td><?php echo esc_html($grades[$member->professional_grade] ?? $member->professional_grade); ?></td>
                             <td><?php echo esc_html($specs[$member->specialization] ?? $member->specialization); ?></td>
+                            <td><?php echo esc_html(SM_Settings::get_branch_name($member->governorate)); ?></td>
                             <td><?php echo esc_html($member->membership_number); ?></td>
                             <td style="font-weight:700; color:<?php echo $finance['balance'] > 0 ? '#e53e3e' : '#38a169'; ?>;"><?php echo number_format($finance['balance'], 2); ?></td>
                             <td>
@@ -186,7 +204,14 @@ if ($import_results) {
 
                     <div class="sm-form-group"><label class="sm-label">فرع الميلاد:</label><input name="province_of_birth" type="text" class="sm-input"></div>
                     <div class="sm-form-group"><label class="sm-label">الدرجة العلمية:</label><select name="academic_degree" class="sm-select"><?php foreach (SM_Settings::get_academic_degrees() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">الفرع:</label><select name="governorate" class="sm-select"><option value="">-- اختر الفرع --</option><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">الفرع:</label><select name="governorate" class="sm-select"><option value="">-- اختر الفرع --</option><?php
+                        $db_branches = SM_DB::get_branches_data();
+                        if (!empty($db_branches)) {
+                            foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                        } else {
+                            foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                        }
+                    ?></select></div>
                     <div class="sm-form-group"><label class="sm-label">رقم العضوية:</label><input name="membership_number" type="text" class="sm-input"></div>
                     <div class="sm-form-group"><label class="sm-label">تاريخ بدء العضوية:</label><input name="membership_start_date" id="add_mem_start" type="date" class="sm-input" onchange="smCalculateDateExpiry('add_mem_start', 'add_mem_expiry')"></div>
                     <div class="sm-form-group"><label class="sm-label">تاريخ انتهاء العضوية:</label><input name="membership_expiration_date" id="add_mem_expiry" type="date" class="sm-input"></div>
@@ -213,7 +238,14 @@ if ($import_results) {
 
                     <div class="sm-form-group"><label class="sm-label">فرع الميلاد:</label><input name="province_of_birth" id="edit_birth_prov" type="text" class="sm-input"></div>
                     <div class="sm-form-group"><label class="sm-label">الدرجة العلمية:</label><select name="academic_degree" id="edit_degree" class="sm-select"><?php foreach (SM_Settings::get_academic_degrees() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">الفرع:</label><select name="governorate" id="edit_gov" class="sm-select"><?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div class="sm-form-group"><label class="sm-label">الفرع:</label><select name="governorate" id="edit_gov" class="sm-select"><?php
+                        $db_branches = SM_DB::get_branches_data();
+                        if (!empty($db_branches)) {
+                            foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                        } else {
+                            foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                        }
+                    ?></select></div>
                     <div class="sm-form-group"><label class="sm-label">تاريخ بدء العضوية:</label><input name="membership_start_date" id="edit_mem_start_input" type="date" class="sm-input" onchange="smCalculateDateExpiry('edit_mem_start_input', 'edit_mem_expiry_input')"></div>
                     <div class="sm-form-group"><label class="sm-label">تاريخ انتهاء العضوية:</label><input name="membership_expiration_date" id="edit_mem_expiry_input" type="date" class="sm-input"></div>
                 </div>
@@ -228,7 +260,7 @@ if ($import_results) {
                 <button class="sm-modal-close" onclick="document.getElementById('member-account-modal').style.display='none'">&times;</button>
             </div>
             <form id="member-account-form">
-                <?php wp_nonce_field('sm_admin_action', 'sm_nonce'); ?>
+                <?php wp_nonce_field('sm_admin_action', 'nonce'); ?>
                 <input type="hidden" name="member_id" id="acc_member_id">
                 <input type="hidden" name="wp_user_id" id="acc_wp_user_id">
                 <div style="padding: 20px;">

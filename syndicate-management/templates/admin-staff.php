@@ -153,7 +153,7 @@
                             <td style="font-family: 'Rubik', sans-serif; font-weight: 700; color: var(--sm-primary-color);"><?php echo esc_html(get_user_meta($u->ID, 'sm_syndicateMemberIdAttr', true) ?: $u->user_login); ?></td>
                             <td style="font-weight: 800; color: var(--sm-dark-color);"><?php echo esc_html($u->display_name); ?></td>
                             <td><span class="sm-badge sm-badge-low"><?php echo $role_labels[$role_slug] ?? $role_slug; ?></span></td>
-                            <td><?php echo SM_Settings::get_governorates()[get_user_meta($u->ID, 'sm_governorate', true)] ?? 'غير محدد'; ?></td>
+                            <td><?php echo esc_html(SM_Settings::get_branch_name(get_user_meta($u->ID, 'sm_governorate', true))); ?></td>
                             <td dir="ltr" style="text-align: right;"><?php echo esc_html(get_user_meta($u->ID, 'sm_phone', true)); ?></td>
                             <td><?php echo esc_html($u->user_email); ?></td>
                             <td>
@@ -254,7 +254,14 @@
                         <label class="sm-label">الفرع:</label>
                         <select name="governorate" id="edit_off_gov" class="sm-select">
                             <option value="">-- اختر الفرع --</option>
-                            <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            <?php
+                                $db_branches = SM_DB::get_branches_data();
+                                if (!empty($db_branches)) {
+                                    foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                                } else {
+                                    foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                                }
+                            ?>
                         </select>
                     </div>
                     <div class="sm-form-group">
@@ -316,7 +323,14 @@
                         <label class="sm-label">الفرع:</label>
                         <select name="governorate" class="sm-select">
                             <option value="">-- اختر الفرع --</option>
-                            <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            <?php
+                                $db_branches = SM_DB::get_branches_data();
+                                if (!empty($db_branches)) {
+                                    foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                                } else {
+                                    foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                                }
+                            ?>
                         </select>
                     </div>
                     <div class="sm-form-group">
