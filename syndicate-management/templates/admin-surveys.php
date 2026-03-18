@@ -1,15 +1,16 @@
 <?php if (!defined('ABSPATH')) exit; global $wpdb; ?>
 <div class="sm-surveys-container">
     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px;">
-        <h3 style="margin:0;">إدارة استطلاعات الرأي</h3>
-        <button class="sm-btn" onclick="smOpenNewSurveyModal()" style="width: auto;">+ إنشاء استطلاع جديد</button>
+        <h3 style="margin:0;">إدارة اختبارات مزاولة المهنة</h3>
+        <button class="sm-btn" onclick="smOpenNewSurveyModal()" style="width: auto;">+ إنشاء اختبار جديد</button>
     </div>
 
     <div class="sm-table-container">
         <table class="sm-table">
             <thead>
                 <tr>
-                    <th>العنوان</th>
+                    <th>عنوان الاختبار</th>
+                    <th>التخصص</th>
                     <th>الفئة المستهدفة</th>
                     <th>تاريخ الإنشاء</th>
                     <th>الحالة</th>
@@ -24,6 +25,7 @@
                 $is_syndicate_admin = in_array('sm_syndicate_admin', (array)$user->roles);
                 $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
 
+                $specs_labels = SM_Settings::get_specializations();
                 foreach ($surveys as $s):
                     $questions = json_decode($s->questions, true);
 
@@ -38,6 +40,7 @@
                 ?>
                 <tr>
                     <td><strong><?php echo esc_html($s->title); ?></strong></td>
+                    <td><span class="sm-badge sm-badge-low"><?php echo !empty($s->specialty) ? ($specs_labels[$s->specialty] ?? $s->specialty) : 'عام لكافة التخصصات'; ?></span></td>
                     <td>
                         <?php
                         if ($s->recipients === 'all') echo 'الجميع';
@@ -74,22 +77,39 @@
 <div id="new-survey-modal" class="sm-modal-overlay">
     <div class="sm-modal-content" style="max-width: 700px;">
         <div class="sm-modal-header">
-            <h3>إنشاء استطلاع رأي جديد</h3>
+            <h3>إعداد اختبار مهني جديد</h3>
             <button class="sm-modal-close" onclick="this.closest('.sm-modal-overlay').style.display='none'">&times;</button>
         </div>
         <div class="sm-modal-body">
             <div class="sm-form-group">
-                <label class="sm-label">استخدام نموذج جاهز (اختياري):</label>
+                <label class="sm-label">قوالب أسئلة جاهزة (اختياري):</label>
                 <select id="survey_template_select" class="sm-select" onchange="smLoadSurveyTemplate(this.value)">
                     <option value="">-- اختر نموذجاً --</option>
-                    <option value="member_satisfaction">استبيان رضا الأعضاء عن الخدمات النقابية</option>
-                    <option value="staff_feedback">استبيان تقييم الكفاءة المهنية</option>
-                    <option value="professional_environment">استبيان البيئة المهنية والمرافق</option>
+                    <option value="member_satisfaction">اختبار المعلومات العامة النقابية</option>
+                    <option value="staff_feedback">اختبار مهارات التخصص الأساسية</option>
+                    <option value="professional_environment">اختبار لوائح مزاولة المهنة</option>
                 </select>
             </div>
             <div class="sm-form-group">
-                <label class="sm-label">عنوان الاستطلاع:</label>
-                <input type="text" id="survey_title" class="sm-input" placeholder="مثال: استبيان رضا أعضاء النقابة">
+                <label class="sm-label">عنوان الاختبار / المسابقة:</label>
+                <input type="text" id="survey_title" class="sm-input" placeholder="مثال: اختبار الحصول على درجة أخصائي">
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                <div class="sm-form-group">
+                    <label class="sm-label">التخصص المرتبط بالاختبار:</label>
+                    <select id="survey_specialty" class="sm-select">
+                        <option value="">-- كافة التخصصات (عام) --</option>
+                        <?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                    </select>
+                </div>
+                <div class="sm-form-group">
+                    <label class="sm-label">نوع الاختبار:</label>
+                    <select id="survey_test_type" class="sm-select">
+                        <option value="practice">اختبار مزاولة مهنة</option>
+                        <option value="promotion">اختبار ترقية درجة</option>
+                        <option value="training">دورة تدريبية</option>
+                    </select>
+                </div>
             </div>
             <div class="sm-form-group">
                 <label class="sm-label">الفئة المستهدفة:</label>
@@ -222,6 +242,8 @@ function smSaveSurvey() {
     formData.append('action', 'sm_add_survey');
     formData.append('title', title);
     formData.append('recipients', recipients);
+    formData.append('specialty', document.getElementById('survey_specialty').value);
+    formData.append('test_type', document.getElementById('survey_test_type').value);
     formData.append('questions', JSON.stringify(questions));
     formData.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
 
@@ -238,7 +260,7 @@ function smSaveSurvey() {
 }
 
 function smCancelSurvey(id) {
-    if (!confirm('هل أنت متأكد من إلغاء هذا الاستطلاع؟ لن يتمكن أحد من الرد عليه بعد الآن.')) return;
+    if (!confirm('هل أنت متأكد من إلغاء هذا الاختبار؟ لن يتمكن أحد من التقديم عليه بعد الآن.')) return;
 
     const formData = new FormData();
     formData.append('action', 'sm_cancel_survey');

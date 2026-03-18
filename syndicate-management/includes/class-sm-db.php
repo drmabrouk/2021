@@ -4,7 +4,6 @@ class SM_DB {
 
     public static function get_staff($args = array()) {
         $user = wp_get_current_user();
-        $is_officer = in_array('sm_syndicate_admin', (array)$user->roles) || in_array('sm_syndicate_member', (array)$user->roles);
         $has_full_access = current_user_can('sm_full_access') || current_user_can('manage_options');
         $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
 
@@ -16,14 +15,19 @@ class SM_DB {
         );
 
         // If not a full admin, restricted to branch
-        if ($is_officer && !$has_full_access && $my_gov) {
-            $default_args['meta_query'] = array(
-                array(
-                    'key' => 'sm_governorate',
-                    'value' => $my_gov,
-                    'compare' => '='
-                )
-            );
+        if (!$has_full_access) {
+            if ($my_gov) {
+                $default_args['meta_query'] = array(
+                    array(
+                        'key' => 'sm_governorate',
+                        'value' => $my_gov,
+                        'compare' => '='
+                    )
+                );
+            } else {
+                // Non-admin with no governorate cannot see staff
+                $default_args['include'] = array($user->ID);
+            }
         }
 
         $args = wp_parse_args($args, $default_args);
@@ -44,12 +48,14 @@ class SM_DB {
 
         // Role-based filtering (Governorate)
         $user = wp_get_current_user();
-        $is_officer = in_array('sm_syndicate_admin', (array)$user->roles) || in_array('sm_syndicate_member', (array)$user->roles);
-        if ($is_officer && !current_user_can('manage_options') && !current_user_can('sm_full_access')) {
+        $has_full_access = current_user_can('manage_options') || current_user_can('sm_full_access');
+        if (!$has_full_access) {
             $gov = get_user_meta($user->ID, 'sm_governorate', true);
             if ($gov) {
                 $query .= " AND governorate = %s";
                 $params[] = $gov;
+            } else {
+                $query .= " AND 1=0"; // No access if no governorate assigned
             }
         }
 
@@ -451,13 +457,16 @@ class SM_DB {
         $stats = array();
 
         $user = wp_get_current_user();
-        $is_officer = in_array('sm_syndicate_admin', (array)$user->roles) || in_array('sm_syndicate_member', (array)$user->roles);
         $has_full_access = current_user_can('sm_full_access') || current_user_can('manage_options');
         $my_gov = get_user_meta($user->ID, 'sm_governorate', true);
 
         $where_member = "1=1";
-        if ($is_officer && !$has_full_access && $my_gov) {
-            $where_member = $wpdb->prepare("governorate = %s", $my_gov);
+        if (!$has_full_access) {
+            if ($my_gov) {
+                $where_member = $wpdb->prepare("governorate = %s", $my_gov);
+            } else {
+                $where_member = "1=0";
+            }
         }
 
         $stats['total_members'] = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sm_members WHERE $where_member");
@@ -466,18 +475,26 @@ class SM_DB {
         // Total Revenue
         $join_member_rev = "";
         $where_rev = "1=1";
-        if ($is_officer && !$has_full_access && $my_gov) {
-            $join_member_rev = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
-            $where_rev = $wpdb->prepare("m.governorate = %s", $my_gov);
+        if (!$has_full_access) {
+            if ($my_gov) {
+                $join_member_rev = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
+                $where_rev = $wpdb->prepare("m.governorate = %s", $my_gov);
+            } else {
+                $where_rev = "1=0";
+            }
         }
         $stats['total_revenue'] = $wpdb->get_var("SELECT SUM(amount) FROM {$wpdb->prefix}sm_payments p $join_member_rev WHERE $where_rev") ?: 0;
 
         // Financial Trends (Last 30 Days)
         $join_member = "";
         $where_finance = "payment_date >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)";
-        if ($is_officer && !$has_full_access && $my_gov) {
-            $join_member = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
-            $where_finance .= $wpdb->prepare(" AND m.governorate = %s", $my_gov);
+        if (!$has_full_access) {
+            if ($my_gov) {
+                $join_member = "JOIN {$wpdb->prefix}sm_members m ON p.member_id = m.id";
+                $where_finance .= $wpdb->prepare(" AND m.governorate = %s", $my_gov);
+            } else {
+                $where_finance .= " AND 1=0";
+            }
         }
 
         $stats['financial_trends'] = $wpdb->get_results("
@@ -496,6 +513,45 @@ class SM_DB {
             WHERE specialization != '' AND $where_member
             GROUP BY specialization
         ");
+
+        // Advanced Stats
+        $stats['total_service_requests'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_service_requests r
+            JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
+            WHERE $where_member
+        ") ?: 0;
+
+        $stats['total_executed_requests'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_service_requests r
+            JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
+            WHERE r.status = 'approved' AND $where_member
+        ") ?: 0;
+
+        $stats['total_update_requests'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_update_requests r
+            JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
+            WHERE $where_member
+        ") ?: 0;
+
+        $stats['total_membership_requests'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_membership_requests
+            WHERE $where_member
+        ") ?: 0;
+
+        $stats['total_requests'] = intval($stats['total_service_requests']) + intval($stats['total_update_requests']) + intval($stats['total_membership_requests']);
+
+        $stats['total_practice_licenses'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_members
+            WHERE license_number != '' AND $where_member
+        ") ?: 0;
+
+        $stats['total_facility_licenses'] = $wpdb->get_var("
+            SELECT COUNT(*) FROM {$wpdb->prefix}sm_members
+            WHERE facility_number != '' AND $where_member
+        ") ?: 0;
+
+        // Work permits (assumed same as practice licenses in this context)
+        $stats['total_work_permits'] = $stats['total_practice_licenses'];
 
         return $stats;
     }
@@ -542,12 +598,14 @@ class SM_DB {
     }
 
 
-    public static function add_survey($title, $questions, $recipients, $user_id) {
+    public static function add_survey($title, $questions, $recipients, $user_id, $specialty = '', $test_type = 'practice') {
         global $wpdb;
         $wpdb->insert("{$wpdb->prefix}sm_surveys", array(
             'title' => $title,
             'questions' => json_encode($questions),
             'recipients' => $recipients,
+            'specialty' => sanitize_text_field($specialty),
+            'test_type' => sanitize_text_field($test_type),
             'status' => 'active',
             'created_by' => $user_id,
             'created_at' => current_time('mysql')
@@ -555,13 +613,22 @@ class SM_DB {
         return $wpdb->insert_id;
     }
 
-    public static function get_surveys($role) {
+    public static function get_surveys($role, $specialty = '') {
         global $wpdb;
         $roles = [$role, 'all'];
         if ($role === 'sm_syndicate_member') $roles[] = 'sm_member';
 
         $placeholders = implode(',', array_fill(0, count($roles), '%s'));
-        return $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_surveys WHERE recipients IN ($placeholders) AND status = 'active' ORDER BY created_at DESC", ...$roles));
+        $query = "SELECT * FROM {$wpdb->prefix}sm_surveys WHERE recipients IN ($placeholders) AND status = 'active'";
+        $params = $roles;
+
+        if (!empty($specialty)) {
+            $query .= " AND (specialty = %s OR specialty = '')";
+            $params[] = $specialty;
+        }
+
+        $query .= " ORDER BY created_at DESC";
+        return $wpdb->get_results($wpdb->prepare($query, ...$params));
     }
 
     public static function save_survey_response($survey_id, $user_id, $responses) {
@@ -827,7 +894,7 @@ class SM_DB {
             $params[] = intval($args['member_id']);
         }
 
-        $query = "SELECT r.*, s.name as service_name, m.name as member_name, m.governorate
+        $query = "SELECT r.*, s.name as service_name, m.name as member_name, m.governorate, m.national_id, m.phone, m.email
                   FROM {$wpdb->prefix}sm_service_requests r
                   JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
                   LEFT JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id

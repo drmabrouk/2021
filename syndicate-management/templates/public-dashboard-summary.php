@@ -5,19 +5,31 @@ $is_officer = current_user_can('sm_manage_members') || current_user_can('manage_
 
 // Check for active surveys for current user role
 $user_role = !empty(wp_get_current_user()->roles) ? wp_get_current_user()->roles[0] : '';
-$active_surveys = SM_DB::get_surveys($user_role);
+$member_specialty = '';
+if (in_array('sm_syndicate_member', (array)wp_get_current_user()->roles)) {
+    $member_specialty = $wpdb->get_var($wpdb->prepare("SELECT specialization FROM {$wpdb->prefix}sm_members WHERE wp_user_id = %d", get_current_user_id()));
+}
+$active_surveys = SM_DB::get_surveys($user_role, $member_specialty);
 
 foreach ($active_surveys as $survey):
     // Check if already responded
     $responded = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}sm_survey_responses WHERE survey_id = %d AND user_id = %d", $survey->id, get_current_user_id()));
     if ($responded) continue;
-?>
-<div class="sm-survey-card" style="background: #fffdf2; border: 2px solid #fef3c7; border-radius: 12px; padding: 25px; margin-bottom: 30px; position: relative; overflow: hidden;">
-    <div style="position: absolute; top: 0; right: 0; background: #fbbf24; color: #78350f; font-size: 10px; font-weight: 800; padding: 4px 15px; border-radius: 0 0 0 12px;">استطلاع رأي هام</div>
-    <h3 style="margin: 0 0 10px 0; color: #92400e;"><?php echo esc_html($survey->title); ?></h3>
-    <p style="margin: 0 0 20px 0; font-size: 14px; color: #b45309;">يرجى المشاركة في هذا الاستطلاع القصير للمساهمة في تحسين جودة العملية المهنية.</p>
 
-    <button class="sm-btn" style="background: #d97706; width: auto;" onclick="smOpenSurveyModal(<?php echo $survey->id; ?>)">المشاركة الآن</button>
+    $is_test = $survey->test_type !== 'survey';
+?>
+<div class="sm-survey-card" style="background: <?php echo $is_test ? '#f0f7ff' : '#fffdf2'; ?>; border: 2px solid <?php echo $is_test ? '#bee3f8' : '#fef3c7'; ?>; border-radius: 12px; padding: 25px; margin-bottom: 30px; position: relative; overflow: hidden;">
+    <div style="position: absolute; top: 0; right: 0; background: <?php echo $is_test ? '#3182ce' : '#fbbf24'; ?>; color: #fff; font-size: 10px; font-weight: 800; padding: 4px 15px; border-radius: 0 0 0 12px;">
+        <?php echo $is_test ? 'اختبار مهني مقرر' : 'استطلاع رأي هام'; ?>
+    </div>
+    <h3 style="margin: 0 0 10px 0; color: <?php echo $is_test ? '#2c5282' : '#92400e'; ?>;"><?php echo esc_html($survey->title); ?></h3>
+    <p style="margin: 0 0 20px 0; font-size: 14px; color: <?php echo $is_test ? '#2b6cb0' : '#b45309'; ?>;">
+        <?php echo $is_test ? 'يرجى الإجابة على كافة الأسئلة بدقة للحصول على تقييم الممارسة المهنية.' : 'يرجى المشاركة في هذا الاستطلاع القصير للمساهمة في تحسين جودة العملية المهنية.'; ?>
+    </p>
+
+    <button class="sm-btn" style="background: <?php echo $is_test ? '#2b6cb0' : '#d97706'; ?>; width: auto;" onclick="smOpenSurveyModal(<?php echo $survey->id; ?>)">
+        <?php echo $is_test ? 'بدء الاختبار الآن' : 'المشاركة الآن'; ?>
+    </button>
 </div>
 
 <!-- Survey Participation Modal -->
@@ -109,6 +121,39 @@ function smSubmitSurveyResponse(surveyId, questionsCount) {
     <div class="sm-stat-card">
         <div style="font-size: 0.85em; color: var(--sm-text-gray); margin-bottom: 10px; font-weight: 700;">إجمالي إيرادات النقابة</div>
         <div style="font-size: 2.5em; font-weight: 900; color: #38a169;"><?php echo number_format($stats['total_revenue'] ?? 0, 2); ?> <span style="font-size: 0.4em;">ج.م</span></div>
+    </div>
+</div>
+
+<!-- Extra Stats Card -->
+<div style="background: #fff; padding: 30px; border: 1px solid var(--sm-border-color); border-radius: 12px; margin-bottom: 30px; box-shadow: var(--sm-shadow);">
+    <h3 style="margin-top:0; font-size: 1.2em; color: var(--sm-dark-color); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
+        <span class="dashicons dashicons-chart-area" style="color: var(--sm-primary-color);"></span> إحصائيات الخدمات والطلبات الرقمية
+    </h3>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 20px;">
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطلبات المرسلة</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_requests'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">طلبات الخدمات الرقمية</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_service_requests'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطلبات المنفذة</div>
+            <div style="font-size: 24px; font-weight: 900; color: #38a169;"><?php echo number_format($stats['total_executed_requests'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">تراخيص مزاولة المهنة</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--sm-primary-color);"><?php echo number_format($stats['total_practice_licenses'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي تصاريح العمل</div>
+            <div style="font-size: 24px; font-weight: 900; color: var(--sm-primary-color);"><?php echo number_format($stats['total_work_permits'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي تراخيص المنشآت</div>
+            <div style="font-size: 24px; font-weight: 900; color: #805ad5;"><?php echo number_format($stats['total_facility_licenses'] ?? 0); ?></div>
+        </div>
     </div>
 </div>
 

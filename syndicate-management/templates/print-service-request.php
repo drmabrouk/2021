@@ -6,7 +6,7 @@ $req = $wpdb->get_row($wpdb->prepare("
     SELECT r.*, s.name as service_name, s.description as service_desc, s.selected_profile_fields, m.name as member_name, m.national_id, m.membership_number, m.governorate, m.professional_grade, m.specialization, m.phone, m.email, m.facility_name
     FROM {$wpdb->prefix}sm_service_requests r
     JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
-    JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
+    LEFT JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id
     WHERE r.id = %d", $request_id));
 
 if (!$req) wp_die('Request not found');
@@ -41,8 +41,11 @@ $data = json_decode($req->request_data, true);
 
     <div class="header">
         <div class="syndicate-info">
-            <h2 style="margin:0;"><?php echo esc_html($syndicate['syndicate_name']); ?></h2>
-            <p style="margin:5px 0;"><?php echo esc_html(SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate); ?></p>
+            <h2 style="margin:0; font-size: 20px;"><?php echo esc_html($syndicate['authority_name']); ?></h2>
+            <h1 style="margin:5px 0; font-size: 22px; color: var(--sm-dark-color);"><?php echo esc_html($syndicate['syndicate_name']); ?></h1>
+            <p style="margin:5px 0; font-weight: bold; border-top: 1px solid #eee; padding-top: 5px;">
+                <?php echo esc_html(SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate); ?>
+            </p>
         </div>
         <?php if (!empty($syndicate['syndicate_logo'])): ?>
             <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" class="logo">
@@ -50,15 +53,23 @@ $data = json_decode($req->request_data, true);
     </div>
 
     <div class="title-box">
-        <h1><?php echo esc_html($req->service_name); ?></h1>
-        <p>رقم المرجع: <?php echo $req->id . '-' . date('Y'); ?></p>
+        <h1 style="text-decoration: underline; text-underline-offset: 8px;"><?php echo esc_html($req->service_name); ?></h1>
+        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 30px; font-size: 14px;">
+            <span><strong>رقم المرجع:</strong> <?php echo $req->id . '/' . date('Y'); ?></span>
+            <span><strong>تاريخ الإصدار:</strong> <?php echo date_i18n('j F Y'); ?></span>
+        </div>
     </div>
 
-    <p>تشهد النقابة بأن السيد/ <strong><?php echo esc_html($req->member_name); ?></strong></p>
-    <p>المقيد بالنقابة برقم عضوية: (<?php echo esc_html($req->membership_number); ?>) وحامل الرقم القومي: (<?php echo esc_html($req->national_id); ?>)</p>
+    <div style="margin-bottom: 30px;">
+        <p style="font-size: 18px;">تشهد إدارة النقابة بأن السيد الزميل/ <strong><?php echo esc_html($req->member_name); ?></strong></p>
+        <p>المقيد بسجلات النقابة برقم عضوية: <span dir="ltr" style="font-family: monospace; font-weight: bold; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html($req->membership_number); ?></span></p>
+        <p>والحاصل على الرقم القومي المصري: <span dir="ltr" style="font-family: monospace; font-weight: bold; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html($req->national_id); ?></span></p>
+        <p style="margin-top: 20px;">قد تقدم بطلب للحصول على خدمة (<?php echo esc_html($req->service_name); ?>) وتم مراجعة بياناته واعتمادها أصولاً، وفيما يلي تفاصيل المستند:</p>
+    </div>
 
     <table class="content-table">
-        <tr><td>تاريخ تقديم الطلب:</td><td><?php echo date('Y-m-d', strtotime($req->created_at)); ?></td></tr>
+        <tr style="background: #f8fafc;"><td colspan="2" style="text-align: center; border-top: 2px solid #111F35;">بيانات المستند المعتمدة</td></tr>
+        <tr><td>تاريخ تقديم الطلب:</td><td><?php echo date_i18n('j F Y', strtotime($req->created_at)); ?></td></tr>
         <?php
         $pFields = json_decode($req->selected_profile_fields, true) ?: [];
         $profile_map = [

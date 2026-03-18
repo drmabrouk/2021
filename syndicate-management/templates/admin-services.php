@@ -124,46 +124,68 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                 <thead>
                     <tr>
                         <th>رقم الطلب</th>
-                        <?php if ($is_official): ?><th>العضو</th><th>المحافظة</th><?php endif; ?>
-                        <th>الخدمة</th>
-                        <th>التاريخ</th>
+                        <th>مقدم الطلب</th>
+                        <th>بيانات التواصل</th>
+                        <th>الخدمة المطلوبة</th>
+                        <th>تاريخ الطلب</th>
                         <th>الحالة</th>
-                        <th>الإجراءات</th>
+                        <th style="width: 150px;">الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     <?php
                     $target_requests = $is_official ? $all_requests : $my_requests;
                     if (empty($target_requests)): ?>
-                        <tr><td colspan="<?php echo $is_official ? 6 : 4; ?>" style="text-align: center; padding: 40px;">لا توجد طلبات سابقة.</td></tr>
+                        <tr><td colspan="7" style="text-align: center; padding: 40px; color: #94a3b8;">لا توجد طلبات سابقة مسجلة في النظام.</td></tr>
                     <?php else:
                         foreach ($target_requests as $r):
-                            $status_label = ['pending'=>'قيد الانتظار', 'processing'=>'جاري التنفيذ', 'approved'=>'مكتمل', 'rejected'=>'مرفوض'][$r->status];
+                            $status_label = ['pending'=>'قيد الانتظار', 'processing'=>'جاري التنفيذ', 'approved'=>'مكتمل / معتمد', 'rejected'=>'مرفوض'][$r->status];
                             $status_class = ['pending'=>'sm-badge-low', 'processing'=>'sm-badge-mid', 'approved'=>'sm-badge-high', 'rejected'=>'sm-badge-urgent'][$r->status] ?? 'sm-badge-low';
+
+                            // Get member details for better display
+                            $m_gov = SM_Settings::get_governorates()[$r->governorate] ?? $r->governorate;
                         ?>
                             <tr>
-                                <td>#<?php echo $r->id; ?></td>
-                                <?php if ($is_official): ?>
-                                    <td style="font-weight: 700;">
-                                        <a href="<?php echo add_query_arg(['sm_tab' => 'member-profile', 'member_id' => $r->member_id]); ?>" style="text-decoration: none; color: var(--sm-primary-color);">
-                                            <?php echo esc_html($r->member_name); ?>
-                                        </a>
-                                    </td>
-                                    <td><?php echo esc_html(SM_Settings::get_governorates()[$r->governorate] ?? $r->governorate); ?></td>
-                                <?php endif; ?>
-                                <td><?php echo esc_html($r->service_name); ?></td>
-                                <td><?php echo date('Y-m-d', strtotime($r->created_at)); ?></td>
-                                <td><span class="sm-badge <?php echo $status_class; ?>"><?php echo $status_label; ?></span></td>
+                                <td style="font-weight: 700; color: var(--sm-primary-color);">#<?php echo $r->id; ?></td>
                                 <td>
-                                    <div style="display: flex; gap: 5px;">
-                                        <button class="sm-btn sm-btn-outline" style="padding: 5px 10px; font-size: 11px;" onclick='viewRequest(<?php echo json_encode($r); ?>)'>تفاصيل</button>
-                                        <?php if ($r->status == 'approved'): ?>
-                                            <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_service_request&id=' . $r->id); ?>" target="_blank" class="sm-btn" style="padding: 5px 10px; font-size: 11px; background: #27ae60; text-decoration: none;">تحميل PDF</a>
-                                            <a href="<?php echo add_query_arg(['sm_tab' => 'member-profile', 'member_id' => $r->member_id, 'sub_tab' => 'documents']); ?>" class="sm-btn sm-btn-outline" style="padding: 5px 10px; font-size: 11px;">التقارير</a>
-                                        <?php endif; ?>
-                                        <?php if ($is_official && in_array($r->status, ['pending', 'processing'])): ?>
-                                            <button class="sm-btn" style="padding: 5px 10px; font-size: 11px;" onclick="processRequest(<?php echo $r->id; ?>, 'approved')">اعتماد</button>
-                                        <?php endif; ?>
+                                    <div style="font-weight: 800; color: var(--sm-dark-color);"><?php echo esc_html($r->member_name ?: 'طلب خارجي'); ?></div>
+                                    <div style="font-size: 10px; color: #64748b; margin-top: 3px;">الرقم القومي: <?php echo esc_html($r->national_id ?: '---'); ?></div>
+                                    <div style="font-size: 10px; color: var(--sm-primary-color); font-weight: 700;"><?php echo esc_html($m_gov ?: '---'); ?></div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 11px;"><?php echo esc_html($r->phone ?: '---'); ?></div>
+                                    <div style="font-size: 11px; color: #64748b;"><?php echo esc_html($r->email ?: '---'); ?></div>
+                                </td>
+                                <td>
+                                    <div style="font-weight: 700;"><?php echo esc_html($r->service_name); ?></div>
+                                    <div style="font-size: 10px; color: #38a169; font-weight: 700;"><?php echo number_format($r->fees_paid, 2); ?> ج.م مسددة</div>
+                                </td>
+                                <td><?php echo date_i18n('j F Y', strtotime($r->created_at)); ?></td>
+                                <td><span class="sm-badge <?php echo $status_class; ?>" style="font-size: 11px; padding: 4px 10px;"><?php echo $status_label; ?></span></td>
+                                <td>
+                                    <div class="sm-actions-dropdown">
+                                        <button class="sm-actions-trigger">الخيارات <span class="dashicons dashicons-arrow-down-alt2"></span></button>
+                                        <div class="sm-actions-content">
+                                            <a href="javascript:void(0)" onclick='viewRequest(<?php echo json_encode($r); ?>)' class="sm-action-item">
+                                                <span class="dashicons dashicons-visibility"></span> تفاصيل البيانات
+                                            </a>
+                                            <?php if ($r->status == 'approved'): ?>
+                                                <a href="<?php echo admin_url('admin-ajax.php?action=sm_print_service_request&id=' . $r->id); ?>" target="_blank" class="sm-action-item" style="color: #27ae60;">
+                                                    <span class="dashicons dashicons-printer"></span> طباعة المستند
+                                                </a>
+                                                <a href="<?php echo add_query_arg(['sm_tab' => 'member-profile', 'member_id' => $r->member_id, 'sub_tab' => 'documents']); ?>" class="sm-action-item">
+                                                    <span class="dashicons dashicons-portfolio"></span> الأرشيف الرقمي
+                                                </a>
+                                            <?php endif; ?>
+                                            <?php if ($is_official && in_array($r->status, ['pending', 'processing'])): ?>
+                                                <a href="javascript:void(0)" onclick="processRequest(<?php echo $r->id; ?>, 'approved')" class="sm-action-item" style="font-weight: 800; color: var(--sm-primary-color);">
+                                                    <span class="dashicons dashicons-yes-alt"></span> اعتماد الطلب
+                                                </a>
+                                                <a href="javascript:void(0)" onclick="processRequest(<?php echo $r->id; ?>, 'rejected')" class="sm-action-item" style="color: #e53e3e;">
+                                                    <span class="dashicons dashicons-dismiss"></span> رفض الطلب
+                                                </a>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </td>
                             </tr>

@@ -1113,6 +1113,7 @@ class SM_Public {
         update_user_meta($user_id, 'sm_temp_pass', $pass);
         update_user_meta($user_id, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($user_id, 'sm_phone', sanitize_text_field($_POST['phone']));
+        update_user_meta($user_id, 'sm_rank', sanitize_text_field($_POST['rank']));
         update_user_meta($user_id, 'sm_account_status', 'active');
 
         $gov = sanitize_text_field($_POST['governorate'] ?? '');
@@ -1184,6 +1185,7 @@ class SM_Public {
 
         update_user_meta($user_id, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($user_id, 'sm_phone', sanitize_text_field($_POST['phone']));
+        update_user_meta($user_id, 'sm_rank', sanitize_text_field($_POST['rank']));
 
         $gov = sanitize_text_field($_POST['governorate'] ?? '');
         if (in_array('sm_syndicate_admin', (array)wp_get_current_user()->roles) || in_array('sm_syndicate_member', (array)wp_get_current_user()->roles)) {
@@ -1510,9 +1512,16 @@ class SM_Public {
     }
 
     public function ajax_add_survey() {
-        if (!current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        if (!current_user_can('manage_options') && !current_user_can('sm_manage_system')) wp_send_json_error('Unauthorized');
         check_ajax_referer('sm_admin_action', 'nonce');
-        $id = SM_DB::add_survey($_POST['title'], $_POST['questions'], $_POST['recipients'], get_current_user_id());
+        $id = SM_DB::add_survey(
+            $_POST['title'],
+            $_POST['questions'],
+            $_POST['recipients'],
+            get_current_user_id(),
+            $_POST['specialty'] ?? '',
+            $_POST['test_type'] ?? 'practice'
+        );
         wp_send_json_success($id);
     }
 
