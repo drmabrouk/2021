@@ -121,9 +121,25 @@ class SM_Activator {
             survey_id mediumint(9) NOT NULL,
             user_id bigint(20) NOT NULL,
             responses text NOT NULL,
+            score int DEFAULT 0,
+            status varchar(50) DEFAULT 'pending',
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
             KEY survey_id (survey_id),
+            KEY user_id (user_id)
+        ) $charset_collate;\n";
+
+        // Test Assignments Table
+        $table_name = $wpdb->prefix . 'sm_test_assignments';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            test_id mediumint(9) NOT NULL,
+            user_id bigint(20) NOT NULL,
+            assigned_by bigint(20),
+            status varchar(50) DEFAULT 'assigned',
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            KEY test_id (test_id),
             KEY user_id (user_id)
         ) $charset_collate;\n";
 
@@ -397,6 +413,22 @@ class SM_Activator {
             PRIMARY KEY  (id),
             KEY member_id (member_id),
             KEY status (status)
+        ) $charset_collate;\n";
+
+        // Branches Table
+        $table_name = $wpdb->prefix . 'sm_branches_data';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            slug varchar(50) NOT NULL,
+            name varchar(255) NOT NULL,
+            phone varchar(50),
+            email varchar(100),
+            address text,
+            manager varchar(255),
+            description text,
+            created_at datetime DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY  (id),
+            UNIQUE KEY slug (slug)
         ) $charset_collate;\n";
 
         require_once ABSPATH . 'wp-admin/includes/upgrade.php';
@@ -713,6 +745,11 @@ class SM_Activator {
                 'title' => 'الخدمات الرقمية',
                 'content' => '[services]',
                 'shortcode' => 'services'
+            ),
+            'branches' => array(
+                'title' => 'الفروع واللجان',
+                'content' => '[sm_branches]',
+                'shortcode' => 'sm_branches'
             )
         );
 

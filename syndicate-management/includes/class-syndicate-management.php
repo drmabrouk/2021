@@ -126,6 +126,10 @@ class Syndicate_Management {
         $this->loader->add_action('wp_ajax_sm_delete_alert', $plugin_public, 'ajax_delete_alert');
         $this->loader->add_action('wp_ajax_sm_acknowledge_alert', $plugin_public, 'ajax_acknowledge_alert');
         $this->loader->add_action('wp_ajax_sm_export_finance_report', $plugin_public, 'ajax_export_finance_report');
+        $this->loader->add_action('wp_ajax_sm_save_branch', $plugin_public, 'ajax_save_branch');
+        $this->loader->add_action('wp_ajax_sm_delete_branch', $plugin_public, 'ajax_delete_branch');
+        $this->loader->add_action('wp_ajax_sm_export_branches', $plugin_public, 'ajax_export_branches');
+        $this->loader->add_action('wp_ajax_sm_assign_test', $plugin_public, 'ajax_assign_test');
         $this->loader->add_action('sm_daily_maintenance', 'SM_DB', 'delete_expired_messages');
         $this->loader->add_action('sm_daily_maintenance', 'SM_Notifications', 'run_daily_checks');
     }

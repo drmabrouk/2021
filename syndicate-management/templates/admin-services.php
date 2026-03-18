@@ -561,10 +561,25 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
     window.viewRequest = function(r) {
         const body = $('#request-details-body').empty();
         const data = JSON.parse(r.request_data);
-        let html = `<div style="margin-bottom:20px;"><strong style="color:var(--sm-primary-color);">الخدمة:</strong> ${r.service_name}</div>`;
-        html += `<div style="display:grid; gap:10px;">`;
+        let html = `
+            <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:20px;">
+                <h4 style="margin:0 0 10px 0; color:var(--sm-primary-color);">بيانات مقدم الطلب</h4>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; font-size:13px;">
+                    <div><strong>الاسم:</strong> ${r.member_name || 'طلب خارجي'}</div>
+                    <div><strong>الرقم القومي:</strong> ${r.national_id || '---'}</div>
+                    <div><strong>رقم الهاتف:</strong> ${r.phone || '---'}</div>
+                    <div><strong>البريد:</strong> ${r.email || '---'}</div>
+                </div>
+            </div>
+            <div style="margin-bottom:20px;"><strong style="color:var(--sm-dark-color);">الخدمة المطلوبة:</strong> <span class="sm-badge sm-badge-low">${r.service_name}</span></div>
+            <h4 style="border-bottom:1px solid #eee; padding-bottom:8px;">بيانات نموذج الخدمة</h4>
+            <div style="display:grid; gap:12px; margin-top:10px;">`;
+
         for (let k in data) {
-            html += `<div><strong>${k}:</strong> ${data[k]}</div>`;
+            html += `<div style="background:#fff; padding:10px; border-radius:5px; border:1px solid #f1f5f9;">
+                        <span style="color:#64748b; font-weight:600; font-size:11px; display:block; margin-bottom:3px;">${k}</span>
+                        <div style="font-weight:700;">${data[k]}</div>
+                     </div>`;
         }
         html += `</div>`;
         body.append(html);

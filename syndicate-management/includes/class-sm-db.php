@@ -624,21 +624,30 @@ class SM_DB {
         return $wpdb->insert_id;
     }
 
-    public static function get_surveys($role, $specialty = '') {
+    public static function get_surveys($user_id, $role, $specialty = '') {
         global $wpdb;
         $roles = [$role, 'all'];
         if ($role === 'sm_syndicate_member') $roles[] = 'sm_member';
 
         $placeholders = implode(',', array_fill(0, count($roles), '%s'));
-        $query = "SELECT * FROM {$wpdb->prefix}sm_surveys WHERE recipients IN ($placeholders) AND status = 'active'";
-        $params = $roles;
+
+        // Get surveys targeted by role/specialty OR specifically assigned to this user
+        $query = "SELECT s.* FROM {$wpdb->prefix}sm_surveys s
+                  LEFT JOIN {$wpdb->prefix}sm_test_assignments a ON s.id = a.test_id AND a.user_id = %d
+                  WHERE s.status = 'active'
+                  AND (
+                      s.recipients IN ($placeholders)
+                      OR a.id IS NOT NULL
+                  )";
+
+        $params = array_merge([$user_id], $roles);
 
         if (!empty($specialty)) {
-            $query .= " AND (specialty = %s OR specialty = '')";
+            $query .= " AND (s.specialty = %s OR s.specialty = '' OR a.id IS NOT NULL)";
             $params[] = $specialty;
         }
 
-        $query .= " ORDER BY created_at DESC";
+        $query .= " ORDER BY s.created_at DESC";
         return $wpdb->get_results($wpdb->prepare($query, ...$params));
     }
 
@@ -693,6 +702,30 @@ class SM_DB {
     public static function get_survey_responses($survey_id) {
         global $wpdb;
         return $wpdb->get_results($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_survey_responses WHERE survey_id = %d", $survey_id));
+    }
+
+    public static function assign_test($test_id, $user_id) {
+        global $wpdb;
+        $assigned_by = get_current_user_id();
+        return $wpdb->insert("{$wpdb->prefix}sm_test_assignments", [
+            'test_id' => intval($test_id),
+            'user_id' => intval($user_id),
+            'assigned_by' => intval($assigned_by),
+            'status' => 'assigned',
+            'assigned_at' => current_time('mysql')
+        ]);
+    }
+
+    public static function get_test_assignments($test_id = null) {
+        global $wpdb;
+        $query = "SELECT a.*, u.display_name as user_name, u2.display_name as assigner_name
+                  FROM {$wpdb->prefix}sm_test_assignments a
+                  JOIN {$wpdb->prefix}users u ON a.user_id = u.ID
+                  LEFT JOIN {$wpdb->prefix}users u2 ON a.assigned_by = u2.ID";
+        if ($test_id) {
+            return $wpdb->get_results($wpdb->prepare($query . " WHERE a.test_id = %d", $test_id));
+        }
+        return $wpdb->get_results($query);
     }
 
     public static function add_update_request($member_id, $data) {
@@ -1409,5 +1442,36 @@ class SM_DB {
             'acknowledged' => 1,
             'created_at' => current_time('mysql')
         ]);
+    }
+
+    // Branches Management
+    public static function get_branches_data() {
+        global $wpdb;
+        return $wpdb->get_results("SELECT * FROM {$wpdb->prefix}sm_branches_data ORDER BY name ASC");
+    }
+
+    public static function save_branch($data) {
+        global $wpdb;
+        $table = $wpdb->prefix . 'sm_branches_data';
+        $branch_data = [
+            'slug' => sanitize_title($data['slug']),
+            'name' => sanitize_text_field($data['name']),
+            'phone' => sanitize_text_field($data['phone']),
+            'email' => sanitize_email($data['email']),
+            'address' => sanitize_text_field($data['address']),
+            'manager' => sanitize_text_field($data['manager']),
+            'description' => sanitize_textarea_field($data['description'])
+        ];
+
+        if (!empty($data['id'])) {
+            return $wpdb->update($table, $branch_data, ['id' => intval($data['id'])]);
+        } else {
+            return $wpdb->insert($table, $branch_data);
+        }
+    }
+
+    public static function delete_branch($id) {
+        global $wpdb;
+        return $wpdb->delete("{$wpdb->prefix}sm_branches_data", ['id' => intval($id)]);
     }
 }

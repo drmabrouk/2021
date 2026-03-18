@@ -9,7 +9,7 @@ $member_specialty = '';
 if (in_array('sm_syndicate_member', (array)wp_get_current_user()->roles)) {
     $member_specialty = $wpdb->get_var($wpdb->prepare("SELECT specialization FROM {$wpdb->prefix}sm_members WHERE wp_user_id = %d", get_current_user_id()));
 }
-$active_surveys = SM_DB::get_surveys($user_role, $member_specialty);
+$active_surveys = SM_DB::get_surveys(get_current_user_id(), $user_role, $member_specialty);
 
 foreach ($active_surveys as $survey):
     // Check if already responded
@@ -157,6 +157,10 @@ function smSubmitSurveyResponse(surveyId, questionsCount) {
         <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
             <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي تراخيص المنشآت</div>
             <div style="font-size: 24px; font-weight: 900; color: #805ad5;"><?php echo number_format($stats['total_facility_licenses'] ?? 0); ?></div>
+        </div>
+        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
+            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطلبات المقدمة</div>
+            <div style="font-size: 24px; font-weight: 900; color: #3182ce;"><?php echo number_format($stats['total_requests'] ?? 0); ?></div>
         </div>
         <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
             <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">طلبات الخدمات الرقمية</div>

@@ -62,6 +62,7 @@
                     </td>
                     <td>
                         <?php if ($s->status === 'active'): ?>
+                            <button class="sm-btn sm-btn-outline" onclick="smOpenAssignModal(<?php echo $s->id; ?>, '<?php echo esc_js($s->title); ?>')" style="padding: 2px 10px; font-size: 11px;">تعيين</button>
                             <button class="sm-btn sm-btn-outline" onclick="smCancelSurvey(<?php echo $s->id; ?>)" style="color: #e53e3e; border-color: #feb2b2; padding: 2px 10px; font-size: 11px;">إلغاء</button>
                         <?php endif; ?>
                         <a href="<?php echo admin_url('admin-ajax.php?action=sm_export_survey_results&id='.$s->id); ?>" class="sm-btn sm-btn-outline" style="padding: 2px 10px; font-size: 11px;">CSV</a>
@@ -133,6 +134,31 @@
                 <button class="sm-btn" onclick="smSaveSurvey()" style="flex:1;">نشر الاستطلاع</button>
                 <button class="sm-btn sm-btn-outline" onclick="this.closest('.sm-modal-overlay').style.display='none'" style="flex:1;">إلغاء</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- ASSIGN TEST MODAL -->
+<div id="assign-test-modal" class="sm-modal-overlay">
+    <div class="sm-modal-content" style="max-width: 500px;">
+        <div class="sm-modal-header">
+            <h3 id="assign-modal-title">تعيين الاختبار لمستخدمين</h3>
+            <button class="sm-modal-close" onclick="this.closest('.sm-modal-overlay').style.display='none'">&times;</button>
+        </div>
+        <div class="sm-modal-body">
+            <input type="hidden" id="assign_survey_id">
+            <div class="sm-form-group">
+                <label class="sm-label">اختر المستخدمين (يمكنك اختيار أكثر من واحد):</label>
+                <select id="assign_user_ids" class="sm-select" multiple style="height: 200px;">
+                    <?php
+                    $all_users = get_users(['role__in' => ['sm_member', 'sm_syndicate_member']]);
+                    foreach($all_users as $u) {
+                        echo "<option value='{$u->ID}'>{$u->display_name} ({$u->user_login})</option>";
+                    }
+                    ?>
+                </select>
+            </div>
+            <button class="sm-btn" onclick="smSubmitAssignment()" style="width: 100%; margin-top: 20px;">تأكيد التعيين</button>
         </div>
     </div>
 </div>
@@ -255,6 +281,40 @@ function smSaveSurvey() {
             location.reload();
         } else {
             smShowNotification('خطأ: ' + res.data, true);
+        }
+    });
+}
+
+function smOpenAssignModal(id, title) {
+    document.getElementById('assign_survey_id').value = id;
+    document.getElementById('assign-modal-title').innerText = 'تعيين الاختبار: ' + title;
+    document.getElementById('assign-test-modal').style.display = 'flex';
+}
+
+function smSubmitAssignment() {
+    const survey_id = document.getElementById('assign_survey_id').value;
+    const select = document.getElementById('assign_user_ids');
+    const user_ids = Array.from(select.selectedOptions).map(option => option.value);
+
+    if (user_ids.length === 0) {
+        alert('يرجى اختيار مستخدم واحد على الأقل');
+        return;
+    }
+
+    const fd = new FormData();
+    fd.append('action', 'sm_assign_test');
+    fd.append('survey_id', survey_id);
+    user_ids.forEach(id => fd.append('user_ids[]', id));
+    fd.append('nonce', '<?php echo wp_create_nonce("sm_admin_action"); ?>');
+
+    fetch(ajaxurl, { method: 'POST', body: fd })
+    .then(r => r.json())
+    .then(res => {
+        if (res.success) {
+            smShowNotification('تم تعيين الاختبار بنجاح');
+            document.getElementById('assign-test-modal').style.display = 'none';
+        } else {
+            alert('خطأ: ' + res.data);
         }
     });
 }

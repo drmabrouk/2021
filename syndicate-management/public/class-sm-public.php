@@ -126,6 +126,7 @@ class SM_Public {
 
         // Page Customization Shortcodes
         add_shortcode('services', array($this, 'shortcode_services'));
+        add_shortcode('sm_branches', array($this, 'shortcode_branches'));
 
         add_filter('authenticate', array($this, 'custom_authenticate'), 20, 3);
         add_filter('auth_cookie_expiration', array($this, 'custom_auth_cookie_expiration'), 10, 3);
@@ -171,6 +172,81 @@ class SM_Public {
     public function shortcode_verify() {
         ob_start();
         include SM_PLUGIN_DIR . 'templates/public-verification.php';
+        return ob_get_clean();
+    }
+
+    public function shortcode_branches() {
+        $branches = SM_DB::get_branches_data();
+        ob_start();
+        ?>
+        <div class="sm-public-page" dir="rtl">
+            <div style="background:#fff; border:1px solid #e2e8f0; border-radius:30px; padding:50px 40px; margin-bottom:50px; text-align:center; box-shadow:0 10px 15px -3px rgba(0,0,0,0.05);">
+                <div style="display:inline-flex; align-items:center; justify-content:center; width:60px; height:60px; background:rgba(246, 48, 73, 0.1); border-radius:20px; margin-bottom:20px;">
+                    <span class="dashicons dashicons-networking" style="font-size:30px; width:30px; height:30px; color:var(--sm-primary-color);"></span>
+                </div>
+                <h2 style="margin:0; font-weight:900; font-size:2.5em; color:var(--sm-dark-color);">الفروع واللجان النقابية</h2>
+                <p style="margin:10px 0 0 0; color:#64748b; font-size:16px; font-weight:500;">تواصل مع فروع النقابة في كافة محافظات الجمهورية</p>
+
+                <div style="max-width:500px; margin:30px auto 0; position:relative;">
+                    <input type="text" id="sm_branch_search" placeholder="ابحث عن فرع محدد..."
+                           style="width:100%; padding:15px 45px 15px 20px; border-radius:15px; border:1px solid #e2e8f0; font-family:'Rubik',sans-serif; outline:none;"
+                           oninput="smFilterBranchesPublic(this.value)">
+                    <span class="dashicons dashicons-search" style="position:absolute; right:15px; top:15px; color:#94a3b8;"></span>
+                </div>
+            </div>
+
+            <div id="sm-branches-grid-public" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:30px;">
+                <?php if(empty($branches)): ?>
+                    <p style="grid-column:span 2; text-align:center; color:#94a3b8;">لا توجد فروع مسجلة حالياً.</p>
+                <?php else: foreach($branches as $b): ?>
+                    <div class="sm-branch-card-public" data-name="<?php echo esc_attr($b->name); ?>"
+                         style="background:#fff; border:1px solid #e2e8f0; border-radius:24px; padding:30px; cursor:pointer; transition:0.3s; box-shadow:0 4px 6px rgba(0,0,0,0.02);"
+                         onclick='smShowBranchDetails(<?php echo json_encode($b); ?>)'>
+                        <div style="display:flex; align-items:center; gap:20px;">
+                            <div style="width:50px; height:50px; background:var(--sm-primary-color); border-radius:15px; display:flex; align-items:center; justify-content:center; color:#fff;">
+                                <span class="dashicons dashicons-location"></span>
+                            </div>
+                            <div>
+                                <h3 style="margin:0; font-weight:800; color:var(--sm-dark-color);"><?php echo esc_html($b->name); ?></h3>
+                                <div style="font-size:12px; color:#64748b; margin-top:5px;"><?php echo esc_html($b->address); ?></div>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; endif; ?>
+            </div>
+        </div>
+
+        <div id="sm-branch-details-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); backdrop-filter:blur(5px); z-index:100000; justify-content:center; align-items:center; padding:20px;">
+            <div style="background:#fff; width:100%; max-width:600px; border-radius:24px; padding:40px; position:relative;">
+                <button onclick="this.parentElement.parentElement.style.display='none'" style="position:absolute; top:20px; left:20px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
+                <div id="sm-branch-details-body"></div>
+            </div>
+        </div>
+
+        <script>
+        function smFilterBranchesPublic(val) {
+            const cards = document.querySelectorAll('.sm-branch-card-public');
+            cards.forEach(c => {
+                c.style.display = c.dataset.name.includes(val) ? 'block' : 'none';
+            });
+        }
+        function smShowBranchDetails(b) {
+            const body = document.getElementById('sm-branch-details-body');
+            body.innerHTML = `
+                <h2 style="font-weight:900; color:var(--sm-dark-color); margin-bottom:20px;">${b.name}</h2>
+                <div style="display:grid; gap:15px;">
+                    <div style="background:#f8fafc; padding:15px; border-radius:12px;"><strong>مدير الفرع:</strong> ${b.manager || 'غير محدد'}</div>
+                    <div style="display:flex; align-items:center; gap:10px;"><span class="dashicons dashicons-phone"></span> <strong>الهاتف:</strong> ${b.phone}</div>
+                    <div style="display:flex; align-items:center; gap:10px;"><span class="dashicons dashicons-email"></span> <strong>البريد:</strong> ${b.email}</div>
+                    <div style="display:flex; align-items:center; gap:10px;"><span class="dashicons dashicons-location"></span> <strong>العنوان:</strong> ${b.address}</div>
+                    <div style="margin-top:20px; line-height:1.6; color:#64748b;">${b.description || ''}</div>
+                </div>
+                <button class="sm-btn" style="width:100%; margin-top:30px;" onclick="this.parentElement.parentElement.parentElement.style.display='none'">إغلاق النافذة</button>
+            `;
+            document.getElementById('sm-branch-details-modal').style.display = 'flex';
+        }
+        </script>
+        <?php
         return ob_get_clean();
     }
 
@@ -1882,6 +1958,22 @@ class SM_Public {
         exit;
     }
 
+    public function ajax_assign_test() {
+        if (!current_user_can('sm_manage_system')) wp_send_json_error('Unauthorized');
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        $survey_id = intval($_POST['survey_id']);
+        $user_ids = array_map('intval', (array)$_POST['user_ids']);
+
+        if (empty($user_ids)) wp_send_json_error('يرجى اختيار مستخدم واحد على الأقل');
+
+        foreach ($user_ids as $uid) {
+            SM_DB::assign_test($survey_id, $uid);
+        }
+
+        wp_send_json_success();
+    }
+
     public function handle_form_submission() {
         if (isset($_POST['sm_import_members_csv'])) {
             $this->handle_member_csv_import();
@@ -2732,6 +2824,37 @@ class SM_Public {
         $alert_id = intval($_POST['alert_id']);
         if (SM_DB::acknowledge_alert($alert_id, get_current_user_id())) wp_send_json_success();
         else wp_send_json_error('Failed to acknowledge alert');
+    }
+
+    public function ajax_save_branch() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $res = SM_DB::save_branch($_POST);
+        if ($res !== false) wp_send_json_success();
+        else wp_send_json_error('Failed to save branch');
+    }
+
+    public function ajax_delete_branch() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) wp_send_json_error('Unauthorized');
+        check_ajax_referer('sm_admin_action', 'nonce');
+        if (SM_DB::delete_branch(intval($_POST['id']))) wp_send_json_success();
+        else wp_send_json_error('Delete failed');
+    }
+
+    public function ajax_export_branches() {
+        if (!current_user_can('sm_full_access') && !current_user_can('manage_options')) wp_die('Unauthorized');
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        $branches = SM_DB::get_branches_data();
+        header('Content-Type: text/csv; charset=utf-8');
+        header('Content-Disposition: attachment; filename=branches_export.csv');
+        $output = fopen('php://output', 'w');
+        fputcsv($output, ['ID', 'Slug', 'Name', 'Phone', 'Email', 'Address', 'Manager', 'Description']);
+        foreach ($branches as $b) {
+            fputcsv($output, [$b->id, $b->slug, $b->name, $b->phone, $b->email, $b->address, $b->manager, $b->description]);
+        }
+        fclose($output);
+        exit;
     }
 
     public function ajax_export_finance_report() {
