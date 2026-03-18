@@ -159,30 +159,30 @@
                             <td>
                                 <div class="sm-actions-dropdown">
                                     <button class="sm-actions-trigger">الإجراءات <span class="dashicons dashicons-arrow-down-alt2"></span></button>
-                                    <div class="sm-actions-content">
-                                        <?php
-                                        $assigned = get_user_meta($u->ID, 'sm_assigned_specializations', true) ?: (get_user_meta($u->ID, 'sm_supervised_grades', true) ?: array());
-                                        ?>
+                                    <?php
+                                    $assigned = get_user_meta($u->ID, 'sm_assigned_specializations', true) ?: (get_user_meta($u->ID, 'sm_supervised_grades', true) ?: array());
+                                    $user_json = wp_json_encode(array(
+                                        "id" => $u->ID,
+                                        "name" => $u->display_name,
+                                        "email" => $u->user_email,
+                                        "login" => $u->user_login,
+                                        "role" => $role_slug,
+                                        "rank" => get_user_meta($u->ID, "sm_rank", true),
+                                        "assigned" => $assigned,
+                                        "officer_id" => get_user_meta($u->ID, "sm_syndicateMemberIdAttr", true),
+                                        "national_id" => get_user_meta($u->ID, "sm_national_id", true),
+                                        "phone" => get_user_meta($u->ID, "sm_phone", true),
+                                        "governorate" => get_user_meta($u->ID, "sm_governorate", true),
+                                        "status" => get_user_meta($u->ID, "sm_account_status", true) ?: "active"
+                                    ));
+                                    ?>
+                                    <div class="sm-actions-content" data-user='<?php echo esc_attr($user_json); ?>'>
                                         <a href="javascript:void(0)" onclick="editSmUser(JSON.parse(this.parentElement.dataset.user))" class="sm-action-item">
                                             <span class="dashicons dashicons-edit"></span> تعديل البيانات
                                         </a>
                                         <a href="javascript:void(0)" onclick="deleteSmUser(<?php echo $u->ID; ?>, '<?php echo esc_js($u->display_name); ?>')" class="sm-action-item sm-delete" style="color:#e53e3e;">
                                             <span class="dashicons dashicons-trash"></span> حذف الحساب
                                         </a>
-                                        <div style="display:none;" data-user='<?php echo esc_attr(wp_json_encode(array(
-                                            "id" => $u->ID,
-                                            "name" => $u->display_name,
-                                            "email" => $u->user_email,
-                                            "login" => $u->user_login,
-                                            "role" => $role_slug,
-                                            "rank" => get_user_meta($u->ID, "sm_rank", true),
-                                            "assigned" => $assigned,
-                                            "officer_id" => get_user_meta($u->ID, "sm_syndicateMemberIdAttr", true),
-                                            "national_id" => get_user_meta($u->ID, "sm_national_id", true),
-                                            "phone" => get_user_meta($u->ID, "sm_phone", true),
-                                            "governorate" => get_user_meta($u->ID, "sm_governorate", true),
-                                            "status" => get_user_meta($u->ID, "sm_account_status", true) ?: "active"
-                                        ))); ?>'></div>
                                     </div>
                                 </div>
                             </td>
