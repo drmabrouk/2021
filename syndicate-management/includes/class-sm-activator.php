@@ -98,13 +98,15 @@ class SM_Activator {
             KEY user_id (user_id)
         ) $charset_collate;\n";
 
-        // Surveys Table
+        // Surveys Table (Now Professional Practice Tests)
         $table_name = $wpdb->prefix . 'sm_surveys';
         $sql .= "CREATE TABLE $table_name (
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             title tinytext NOT NULL,
             questions text NOT NULL,
             recipients tinytext NOT NULL,
+            specialty varchar(100) DEFAULT '',
+            test_type varchar(100) DEFAULT 'practice',
             status enum('active', 'completed', 'cancelled') DEFAULT 'active',
             created_by bigint(20),
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -403,6 +405,7 @@ class SM_Activator {
         update_option('sm_plugin_version', SM_VERSION);
 
         self::fix_services_schema();
+        self::fix_surveys_schema();
         self::setup_roles();
         self::seed_notification_templates();
         self::seed_publishing_templates();
@@ -768,6 +771,25 @@ class SM_Activator {
         $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
         if (empty($deleted_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER requires_login");
+        }
+    }
+
+    private static function fix_surveys_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_surveys';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $spec_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'specialty'));
+        if (empty($spec_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD specialty varchar(100) DEFAULT '' AFTER recipients");
+        }
+
+        $type_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'test_type'));
+        if (empty($type_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD test_type varchar(100) DEFAULT 'practice' AFTER specialty");
         }
     }
 

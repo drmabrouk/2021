@@ -33,7 +33,7 @@ class SM_Settings {
             'tab_facility_licenses' => 'تسجيل المنشآت',
             'tab_staffs' => 'إدارة مستخدمي النظام',
             'tab_printing' => 'مركز الطباعة والنشر الرقمي',
-            'tab_surveys' => 'استطلاعات الرأي',
+            'tab_surveys' => 'اختبارات مزاولة المهنة',
             'tab_global_settings' => 'إعدادات النظام',
             'tab_update_requests' => 'طلبات التحديث',
             'tab_my_profile' => 'ملفي الشخصي'

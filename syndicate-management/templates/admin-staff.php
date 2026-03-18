@@ -175,6 +175,7 @@
                                             "email" => $u->user_email,
                                             "login" => $u->user_login,
                                             "role" => $role_slug,
+                                            "rank" => get_user_meta($u->ID, "sm_rank", true),
                                             "assigned" => $assigned,
                                             "officer_id" => get_user_meta($u->ID, "sm_syndicateMemberIdAttr", true),
                                             "phone" => get_user_meta($u->ID, "sm_phone", true),
@@ -242,6 +243,13 @@
                         </select>
                     </div>
                     <div class="sm-form-group">
+                        <label class="sm-label">الرتبة / الدرجة المهنية:</label>
+                        <select name="rank" id="edit_off_rank" class="sm-select">
+                            <option value="">-- اختر الرتبة --</option>
+                            <?php foreach (SM_Settings::get_professional_grades() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                        </select>
+                    </div>
+                    <div class="sm-form-group">
                         <label class="sm-label">المحافظة:</label>
                         <select name="governorate" id="edit_off_gov" class="sm-select">
                             <option value="">-- اختر المحافظة --</option>
@@ -290,6 +298,13 @@
                             foreach($wp_roles->roles as $role_key => $role_data): ?>
                                 <option value="<?php echo esc_attr($role_key); ?>" <?php selected($role_key, 'sm_syndicate_member'); ?>><?php echo esc_html(translate_user_role($role_data['name'])); ?></option>
                             <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="sm-form-group">
+                        <label class="sm-label">الرتبة / الدرجة المهنية:</label>
+                        <select name="rank" class="sm-select">
+                            <option value="">-- اختر الرتبة --</option>
+                            <?php foreach (SM_Settings::get_professional_grades() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
                         </select>
                     </div>
                     <div class="sm-form-group">
@@ -377,6 +392,7 @@
             document.getElementById('edit_off_email').value = u.email;
             document.getElementById('edit_off_status').value = u.status || 'active';
             document.getElementById('edit_off_role').value = u.role;
+            document.getElementById('edit_off_rank').value = u.rank || '';
             document.getElementById('edit_off_gov').value = u.governorate || '';
             document.getElementById('edit-staff-modal').style.display = 'flex';
         };
