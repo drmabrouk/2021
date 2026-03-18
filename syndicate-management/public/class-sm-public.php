@@ -188,32 +188,38 @@ class SM_Public {
         ob_start();
         ?>
         <div class="sm-public-page" dir="rtl">
-            <!-- Order Tracking Header (Light Refined UI) -->
-            <div class="sm-tracking-search-box" style="background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; padding: 40px; margin-bottom: 50px; color: var(--sm-dark-color); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h2 style="margin: 0; font-weight: 900; font-size: 2.2em; letter-spacing: -1px; color: var(--sm-dark-color);">متابعة حالة الطلبات</h2>
-                    <p style="margin: 10px 0 0 0; color: #64748b; font-size: 15px; font-weight: 500;">أدخل كود التتبع الخاص بطلبك للاستعلام عن حالته الحالية</p>
+            <!-- Order Tracking Header (Professional UI Redesign) -->
+            <div class="sm-tracking-search-box" style="background: linear-gradient(135deg, #fff 0%, #f9fafb 100%); border: 1px solid #e2e8f0; border-radius: 30px; padding: 50px 40px; margin-bottom: 60px; color: var(--sm-dark-color); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);">
+                <div style="text-align: center; margin-bottom: 35px;">
+                    <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: rgba(246, 48, 73, 0.1); border-radius: 20px; margin-bottom: 20px;">
+                        <span class="dashicons dashicons-search" style="font-size: 30px; width: 30px; height: 30px; color: var(--sm-primary-color);"></span>
+                    </div>
+                    <h2 style="margin: 0; font-weight: 900; font-size: 2.5em; letter-spacing: -1px; color: var(--sm-dark-color);">متابعة حالة الطلبات</h2>
+                    <p style="margin: 12px 0 0 0; color: #64748b; font-size: 16px; font-weight: 500;">استعلم عن حالة طلبك الرقمي لحظياً باستخدام كود التتبع الموحد</p>
                 </div>
-                <div style="display: flex; gap: 15px; max-width: 650px; margin: 0 auto; background: #f8fafc; padding: 10px; border-radius: 20px; border: 1px solid #f1f5f9;">
-                    <input type="text" id="sm_service_tracking_input" placeholder="أدخل كود الطلب (مثال: <?php echo date('Ymd'); ?>123)"
-                           style="flex: 1; padding: 15px 25px; border-radius: 15px; border: 1px solid #e2e8f0; background: #fff; color: var(--sm-dark-color); font-family: 'Rubik', sans-serif; font-size: 16px; outline: none; transition: 0.3s; box-shadow: inset 0 2px 4px 0 rgba(0,0,0,0.02);">
+                <div style="display: flex; gap: 15px; max-width: 750px; margin: 0 auto; background: #fff; padding: 12px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.02);">
+                    <div style="flex: 1; position: relative; display: flex; align-items: center;">
+                        <span class="dashicons dashicons-text-page" style="position: absolute; right: 20px; color: #94a3b8;"></span>
+                        <input type="text" id="sm_service_tracking_input" placeholder="أدخل كود الطلب (مثال: <?php echo date('Ymd'); ?>123)"
+                               style="width: 100%; padding: 18px 50px 18px 25px; border-radius: 18px; border: 1px solid transparent; background: #f8fafc; color: var(--sm-dark-color); font-family: 'Rubik', sans-serif; font-size: 16px; outline: none; transition: 0.3s; font-weight: 500;">
+                    </div>
                     <button onclick="smTrackServiceRequest()"
-                            style="background: var(--sm-primary-color); color: #fff; border: none; padding: 0 40px; border-radius: 15px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif; box-shadow: 0 4px 6px -1px rgba(246, 48, 73, 0.2);">بحث وتتبع</button>
+                            style="background: var(--sm-primary-color); color: #fff; border: none; padding: 0 45px; border-radius: 18px; font-weight: 800; font-size: 16px; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif; box-shadow: 0 4px 12px rgba(246, 48, 73, 0.3);">بحث وتتبع</button>
                 </div>
-                <div id="sm-tracking-results-area" style="margin-top: 35px; display: none; background: #f8fafc; border-radius: 20px; padding: 30px; border: 1px solid #e2e8f0; animation: smFadeIn 0.4s ease;"></div>
+                <div id="sm-tracking-results-area" style="margin-top: 40px; display: none; background: #fff; border-radius: 24px; padding: 35px; border: 1px solid #e2e8f0; animation: smFadeIn 0.4s ease; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);"></div>
             </div>
 
-            <div class="sm-services-layout" style="display: flex; gap: 30px; margin-top: 40px; align-items: flex-start;">
+            <div class="sm-services-layout" style="display: flex; gap: 40px; margin-top: 50px; align-items: flex-start;">
                 <!-- Right Sidebar: Categories -->
-                <div class="sm-services-sidebar" style="width: 260px; flex-shrink: 0; background: #fff; border: 1px solid var(--sm-border-color); border-radius: 20px; padding: 25px; position: sticky; top: 20px;">
-                    <h4 style="margin: 0 0 20px 0; font-weight: 800; color: var(--sm-dark-color); display: flex; align-items: center; gap: 10px;">
-                        <span class="dashicons dashicons-filter" style="font-size: 18px; width: 18px; height: 18px;"></span> تصنيفات الخدمات
+                <div class="sm-services-sidebar" style="width: 280px; flex-shrink: 0; background: #fff; border: 1px solid var(--sm-border-color); border-radius: 24px; padding: 30px; position: sticky; top: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02);">
+                    <h4 style="margin: 0 0 25px 0; font-weight: 800; color: var(--sm-dark-color); display: flex; align-items: center; gap: 12px; font-size: 1.1em;">
+                        <span style="display:flex; align-items:center; justify-content:center; width:32px; height:32px; background:var(--sm-primary-color); color:#fff; border-radius:8px;"><span class="dashicons dashicons-filter" style="font-size: 18px; width: 18px; height: 18px;"></span></span> تصنيفات الخدمات
                     </h4>
-                    <div class="sm-category-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    <div class="sm-category-list" style="display: flex; flex-direction: column; gap: 10px;">
                         <?php foreach ($categories as $cat): ?>
                             <button class="sm-category-btn <?php echo $cat === 'الكل' ? 'active' : ''; ?>"
                                     data-category="<?php echo esc_attr($cat); ?>"
-                                    style="text-align: right; padding: 12px 20px; border: 1px solid transparent; border-radius: 12px; background: transparent; color: #64748b; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif;">
+                                    style="text-align: right; padding: 14px 20px; border: 1px solid #f1f5f9; border-radius: 14px; background: #f8fafc; color: #64748b; font-weight: 600; cursor: pointer; transition: 0.3s; font-family: 'Rubik', sans-serif;">
                                 <?php echo esc_html($cat); ?>
                             </button>
                         <?php endforeach; ?>
@@ -222,7 +228,7 @@ class SM_Public {
 
                 <!-- Left Content: Service Grid -->
                 <div class="sm-services-grid-wrapper" style="flex: 1;">
-                    <div id="sm-services-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+                    <div id="sm-services-grid" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 30px;">
                         <?php if (empty($services)): ?>
                             <div style="grid-column: 1/-1; text-align: center; padding: 60px; color: #94a3b8; background: #fff; border-radius: 20px; border: 1px dashed #cbd5e0;">
                                 <span class="dashicons dashicons-warning" style="font-size: 40px; width: 40px; height: 40px; margin-bottom: 15px; opacity: 0.5;"></span>
@@ -317,16 +323,15 @@ class SM_Public {
                     if(res.success) {
                         const r = res.data;
                         area.innerHTML = `
-                            <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:25px;">
-                                <div><span class="sm-tracking-label" style="color:#64748b;">الخدمة:</span><span class="sm-tracking-value" style="color:var(--sm-dark-color);">${r.service}</span></div>
-                                <div><span class="sm-tracking-label" style="color:#64748b;">تاريخ الطلب:</span><span class="sm-tracking-value" style="color:var(--sm-dark-color);">${r.date}</span></div>
-                                <div><span class="sm-tracking-label" style="color:#64748b;">حالة الطلب:</span><span style="color:var(--sm-primary-color); font-weight:900; font-size:16px;">${r.status}</span></div>
-                                <div style="grid-column: span 3; border-top: 1px solid #e2e8f0; padding-top:20px; margin-top:5px;">
-                                    <span class="sm-tracking-label" style="color:#64748b;">مقدم الطلب:</span><span class="sm-tracking-value" style="color:var(--sm-dark-color);">${r.member}</span>
-                                </div>
+                            <div style="display:grid; grid-template-columns: repeat(2, 1fr); gap:30px;">
+                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">نوع الخدمة</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.service}</span></div>
+                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">تاريخ التقديم</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.date}</span></div>
+                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">الحالة الحالية</span><span style="color:var(--sm-primary-color); font-weight:900; font-size:1.2em;">${r.status}</span></div>
+                                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #f1f5f9;"><span class="sm-tracking-label" style="color:#64748b; font-weight:600; margin-bottom:8px;">مقدم الطلب</span><span class="sm-tracking-value" style="color:var(--sm-dark-color); font-size:1.1em;">${r.member}</span></div>
                                 ${r.notes ? `
-                                <div style="grid-column: span 3; border-top: 1px solid #e2e8f0; padding-top:20px; margin-top:5px;">
-                                    <span class="sm-tracking-label" style="color:#64748b;">ملاحظات الإدارة:</span><span class="sm-tracking-value" style="color:#e53e3e; font-weight:800;">${r.notes}</span>
+                                <div style="grid-column: span 2; background:#fff5f5; padding:25px; border-radius:15px; border:1px solid #feb2b2;">
+                                    <span class="sm-tracking-label" style="color:#c53030; font-weight:700; margin-bottom:10px; display:flex; align-items:center; gap:8px;"><span class="dashicons dashicons-admin-comments"></span> ملاحظات الإدارة والمرفقات</span>
+                                    <div class="sm-tracking-value" style="color:#c53030; line-height:1.6; font-weight:500;">${r.notes}</div>
                                 </div>` : ''}
                             </div>
                         `;
@@ -874,7 +879,7 @@ class SM_Public {
 
     public function shortcode_login_page() {
         if (!is_user_logged_in()) {
-            return '<div class="sm-topbar-login" style="display:flex; align-items:center; gap:8px; font-weight:700;">
+            return '<div class="sm-topbar-login" style="display:flex; align-items:center; gap:8px; font-weight:700; margin:0; padding:0;">
                 <span class="dashicons dashicons-lock" style="color:#e53e3e; font-size:20px; width:20px; height:20px;"></span>
                 <a href="' . home_url('/sm-login') . '" style="text-decoration:none; color:inherit;">Register / Login</a>
             </div>';
@@ -885,17 +890,17 @@ class SM_Public {
 
         ob_start();
         ?>
-        <div class="sm-topbar-user-wrap" style="position:relative; display:inline-block;">
+        <div class="sm-topbar-user-wrap" style="position:relative; display:inline-block; margin:0; padding:0;">
             <div class="sm-user-dropdown">
-                <div class="sm-user-profile-nav" onclick="smToggleUserDropdown()" style="display: flex; align-items: center; gap: 12px; background: white; padding: 6px 12px; border-radius: 50px; border: 1px solid var(--sm-border-color); cursor: pointer;">
+                <div class="sm-user-profile-nav" onclick="smToggleUserDropdown()" style="display: flex; align-items: center; gap: 10px; background: #fff; padding: 5px 10px; border-radius: 50px; border: 1px solid #e2e8f0; cursor: pointer; transition: 0.2s;">
                     <div style="text-align: right;">
-                        <div style="font-size: 0.85em; font-weight: 700; color: var(--sm-dark-color);"><?php echo $greeting . '، ' . $user->display_name; ?></div>
-                        <div style="font-size: 0.7em; color: #38a169;">متصل الآن <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 10px; width: 10px; height: 10px;"></span></div>
+                        <div style="font-size: 11px; font-weight: 700; color: var(--sm-dark-color); line-height: 1.2;"><?php echo $greeting . '، ' . $user->display_name; ?></div>
+                        <div style="font-size: 9px; color: #38a169;">متصل الآن <span class="dashicons dashicons-arrow-down-alt2" style="font-size: 8px; width: 8px; height: 8px;"></span></div>
                     </div>
-                    <?php echo get_avatar($user->ID, 32, '', '', array('style' => 'border-radius: 50%; border: 2px solid var(--sm-primary-color); width: 32px; height: 32px; object-fit: cover;')); ?>
+                    <?php echo get_avatar($user->ID, 28, '', '', array('style' => 'border-radius: 50%; border: 2px solid var(--sm-primary-color); width: 28px; height: 28px; object-fit: cover;')); ?>
                 </div>
 
-                <div id="sm-user-dropdown-menu" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--sm-border-color); border-radius: 8px; width: 260px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); z-index: 1000; animation: smFadeIn 0.2s ease-out; padding: 10px 0;">
+                <div id="sm-user-dropdown-menu" style="display: none; position: absolute; top: 110%; left: 0; background: white; border: 1px solid var(--sm-border-color); border-radius: 12px; width: 220px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); z-index: 100000; animation: smFadeIn 0.2s ease-out; padding: 8px 0; margin: 0;">
                     <div id="sm-profile-view">
                         <div style="padding: 10px 20px; border-bottom: 1px solid #f0f0f0; margin-bottom: 5px;">
                             <div style="font-weight: 800; color: var(--sm-dark-color);"><?php echo $user->display_name; ?></div>
