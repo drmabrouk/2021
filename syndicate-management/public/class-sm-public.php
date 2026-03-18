@@ -567,7 +567,10 @@ class SM_Public {
                     <div style="margin-bottom:30px;"><h3 style="margin:0; font-weight:900; color:var(--sm-dark-color);">طلب خدمة: ${s.name}</h3><p style="margin:5px 0 0 0; color:#64748b; font-size:13px;">يرجى استكمال البيانات المطلوبة لتقديم طلبك بنجاح</p></div>
                     <form id="sm-public-service-form">
                         <input type="hidden" name="service_id" value="${s.id}">
+
+                        <!-- Step 1: Verification & Pre-fill -->
                         <div class="sm-form-step active" id="step-1">
+                            <h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">1. التحقق من البيانات</h4>
                             <div class="sm-form-group"><label class="sm-label">الاسم الكامل:</label><input name="cust_name" class="sm-input" required value="<?php echo esc_attr($current_member->name ?? ''); ?>"></div>
                             <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input name="cust_email" type="email" class="sm-input" required value="<?php echo esc_attr($current_member->email ?? ''); ?>"></div>
                             <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input name="cust_phone" class="sm-input" required value="<?php echo esc_attr($current_member->phone ?? ''); ?>"></div>
@@ -584,12 +587,62 @@ class SM_Public {
                                     ?>
                                 </select>
                             </div>
-                            <button type="button" onclick="smMoveStep(2)" class="sm-btn" style="width:100%; margin-top:10px;">التالي</button>
+                            <button type="button" onclick="smMoveStep(2)" class="sm-btn" style="width:100%; margin-top:10px;">تأكيد البيانات والانتقال</button>
                         </div>
+
+                        <!-- Step 2: Terms & Conditions -->
                         <div class="sm-form-step" id="step-2">
-                            ${reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input name="field_${f.name}" type="${f.type||'text'}" class="sm-input" required></div>`).join('')}
-                            <div style="display:flex; gap:10px; margin-top:10px;">
+                            <h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">2. الشروط والأحكام</h4>
+                            <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #e2e8f0; font-size:13px; line-height:1.8; color:#64748b; margin-bottom:20px; max-height:200px; overflow-y:auto;">
+                                <strong>تعليمات الخدمة:</strong><br>
+                                1. يقر العضو بصحة كافة البيانات والوثائق المرفقة بالطلب.<br>
+                                2. تخضع كافة الطلبات للمراجعة الفنية من قبل الإدارة المختصة.<br>
+                                3. يتم إصدار المستند الرقمي فور الموافقة النهائية وسداد الرسوم المقررة.<br>
+                                4. في حالة الرفض، سيتم توضيح الأسباب عبر كود التتبع.<br>
+                                5. الرسوم المدفوعة مقابل الخدمات الرقمية غير قابلة للاسترداد بعد البدء في التنفيذ.
+                            </div>
+                            <label style="display:flex; align-items:center; gap:10px; cursor:pointer; font-weight:700; color:var(--sm-dark-color);">
+                                <input type="checkbox" id="terms_confirmation" required style="width:20px; height:20px;"> لقد قرأت تعليمات الخدمة وأوافق على كافة الشروط والأحكام.
+                            </label>
+                            <div style="display:flex; gap:10px; margin-top:30px;">
                                 <button type="button" onclick="smMoveStep(1)" class="sm-btn sm-btn-outline">السابق</button>
+                                <button type="button" onclick="if(document.getElementById('terms_confirmation').checked) smMoveStep(3); else alert('يرجى الموافقة على الشروط أولاً');" class="sm-btn" style="flex:1;">أوافق، الانتقال للمرحلة التالية</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Required Data -->
+                        <div class="sm-form-step" id="step-3">
+                            <h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">3. البيانات المطلوبة</h4>
+                            ${reqFields.length > 0 ? reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input name="field_${f.name}" type="${f.type||'text'}" class="sm-input" required></div>`).join('') : '<p style="text-align:center; color:#94a3b8; padding:20px;">لا توجد حقول إضافية مطلوبة لهذه الخدمة.</p>'}
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button type="button" onclick="smMoveStep(2)" class="sm-btn sm-btn-outline">السابق</button>
+                                <button type="button" onclick="smMoveStep(4)" class="sm-btn" style="flex:1;">التالي: السداد</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Payment Stage -->
+                        <div class="sm-form-step" id="step-4">
+                            <h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">4. مرحلة السداد</h4>
+                            <div style="text-align:center; padding:30px; background:#fff5f5; border:1px solid #feb2b2; border-radius:15px; margin-bottom:20px;">
+                                <div style="font-size:30px; margin-bottom:10px;">💳</div>
+                                <div style="font-weight:900; font-size:1.4em; color:#c53030;">رسوم الخدمة: ${s.fees > 0 ? s.fees + ' ج.م' : 'خدمة مجانية'}</div>
+                                <p style="font-size:12px; color:#7b2c2c; margin-top:5px;">سيتم توجيهك لبوابة الدفع الإلكتروني فور تأكيد الطلب</p>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button type="button" onclick="smMoveStep(3)" class="sm-btn sm-btn-outline">السابق</button>
+                                <button type="button" onclick="smMoveStep(5)" class="sm-btn" style="flex:1;">تأكيد الدفع</button>
+                            </div>
+                        </div>
+
+                        <!-- Step 5: Placeholder for future development -->
+                        <div class="sm-form-step" id="step-5">
+                            <h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">5. إتمام الطلب</h4>
+                            <div style="text-align:center; padding:40px; border:2px dashed #e2e8f0; border-radius:15px; color:#94a3b8; margin-bottom:20px;">
+                                <span class="dashicons dashicons-admin-tools" style="font-size:40px; width:40px; height:40px; margin-bottom:10px;"></span>
+                                <p>هذه المرحلة قيد التطوير البرمجي حالياً لإتمام الربط النهائي.</p>
+                            </div>
+                            <div style="display:flex; gap:10px; margin-top:10px;">
+                                <button type="button" onclick="smMoveStep(4)" class="sm-btn sm-btn-outline">السابق</button>
                                 <button type="submit" class="sm-btn" style="flex:1;">تأكيد وتقديم الطلب</button>
                             </div>
                         </div>
@@ -2642,7 +2695,17 @@ class SM_Public {
     public function shortcode_contact() {
         ob_start();
         ?>
-        <div class="sm-contact-wrapper" dir="rtl" style="max-width: 800px; margin: 0 auto; background: #fff; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
+        <div class="sm-contact-wrapper" dir="rtl" style="max-width: 800px; margin: 60px auto; background: #fff; padding: 40px; border-radius: 24px; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); position: relative; z-index: 10;">
+            <style>
+                .sm-contact-wrapper .sm-label { display: none; }
+                .sm-contact-wrapper .sm-input, .sm-contact-wrapper .sm-textarea {
+                    width: 100%; border-radius: 12px; border: 1px solid #e2e8f0; padding: 15px;
+                    font-family: 'Rubik', sans-serif; transition: 0.3s; background: #f8fafc;
+                }
+                .sm-contact-wrapper .sm-input:focus, .sm-contact-wrapper .sm-textarea:focus {
+                    border-color: var(--sm-primary-color); background: #fff; outline: none; box-shadow: 0 0 0 4px rgba(246, 48, 73, 0.1);
+                }
+            </style>
             <div style="text-align: center; margin-bottom: 35px;">
                 <div style="display: inline-flex; align-items: center; justify-content: center; width: 60px; height: 60px; background: rgba(246, 48, 73, 0.1); border-radius: 20px; margin-bottom: 20px;">
                     <span class="dashicons dashicons-email-alt" style="font-size: 30px; width: 30px; height: 30px; color: var(--sm-primary-color);"></span>
@@ -2656,33 +2719,33 @@ class SM_Public {
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px;">
                     <div class="sm-form-group">
                         <label class="sm-label">الاسم الكامل:</label>
-                        <input type="text" name="name" class="sm-input" required placeholder="أدخل اسمك الكامل">
+                        <input type="text" name="name" class="sm-input" required placeholder="الاسم الكامل">
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">رقم الهاتف:</label>
-                        <input type="text" name="phone" class="sm-input" required placeholder="01xxxxxxxxx">
+                        <input type="text" name="phone" class="sm-input" required placeholder="رقم الهاتف (01xxxxxxxxx)">
                     </div>
                 </div>
                 <div class="sm-form-group" style="margin-bottom: 20px;">
                     <label class="sm-label">البريد الإلكتروني:</label>
-                    <input type="email" name="email" class="sm-input" required placeholder="example@domain.com">
+                    <input type="email" name="email" class="sm-input" required placeholder="البريد الإلكتروني">
                 </div>
                 <div class="sm-form-group" style="margin-bottom: 20px;">
                     <label class="sm-label">الموضوع:</label>
-                    <input type="text" name="subject" class="sm-input" required placeholder="أدخل عنوان الرسالة">
+                    <input type="text" name="subject" class="sm-input" required placeholder="عنوان الرسالة">
                 </div>
                 <div class="sm-form-group" style="margin-bottom: 30px;">
                     <label class="sm-label">نص الرسالة:</label>
-                    <textarea name="message" class="sm-textarea" rows="6" required placeholder="كيف يمكننا مساعدتك؟"></textarea>
+                    <textarea name="message" class="sm-textarea" rows="6" required placeholder="كيف يمكننا مساعدتك؟ (اكتب رسالتك هنا)"></textarea>
                 </div>
                 <button type="submit" class="sm-btn" style="width: 100%; height: 55px; font-weight: 800; font-size: 16px; border-radius: 15px; box-shadow: 0 4px 12px rgba(246, 48, 73, 0.3);">إرسال الرسالة الآن</button>
             </form>
 
             <div id="sm-contact-success" style="display: none; text-align: center; padding: 40px 0;">
                 <div style="font-size: 60px; margin-bottom: 20px;">✅</div>
-                <h3 style="font-weight: 900; font-size: 1.8em; margin: 0 0 10px 0;">تم إرسال رسالتك بنجاح!</h3>
-                <p style="color: #64748b; font-size: 15px; line-height: 1.6;">شكراً لتواصلك معنا. سيقوم فريق الدعم بمراجعة رسالتك والرد عليك عبر البريد الإلكتروني في أقرب وقت ممكن.</p>
-                <button onclick="location.reload()" class="sm-btn sm-btn-outline" style="margin-top: 25px; width: auto; padding: 0 40px;">إرسال رسالة أخرى</button>
+                <h3 style="font-weight: 900; font-size: 1.6em; margin: 0 0 15px 0; color: #2f855a; line-height: 1.4;">تم إرسال رسالتك بنجاح! شكراً لتواصلك معنا.</h3>
+                <p style="color: #64748b; font-size: 15px; line-height: 1.8;">سيقوم فريق الدعم بمراجعة رسالتك والرد عليك عبر البريد الإلكتروني في أقرب وقت ممكن.</p>
+                <button onclick="location.reload()" class="sm-btn" style="margin-top: 30px; width: auto; padding: 0 50px; background: #f1f5f9; color: #475569; border: 1px solid #e2e8f0;">إرسال رسالة أخرى</button>
             </div>
         </div>
 
