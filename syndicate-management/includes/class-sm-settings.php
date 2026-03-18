@@ -35,7 +35,10 @@ class SM_Settings {
             'tab_surveys' => 'اختبارات الممارسة المهنية',
             'tab_global_settings' => 'إعدادات النظام',
             'tab_update_requests' => 'طلبات التحديث',
-            'tab_my_profile' => 'ملفي الشخصي'
+            'tab_my_profile' => 'ملفي الشخصي',
+            'field_specialty' => 'التخصص المهني',
+            'field_grade' => 'الدرجة الوظيفية',
+            'field_rank' => 'الرتبة النقابية'
         );
         return wp_parse_args(get_option('sm_labels', array()), $default);
     }
