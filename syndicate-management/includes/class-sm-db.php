@@ -712,7 +712,7 @@ class SM_DB {
             'user_id' => intval($user_id),
             'assigned_by' => intval($assigned_by),
             'status' => 'assigned',
-            'assigned_at' => current_time('mysql')
+            'created_at' => current_time('mysql')
         ]);
     }
 
@@ -864,6 +864,7 @@ class SM_DB {
         return $wpdb->insert("{$wpdb->prefix}sm_services", array(
             'name' => sanitize_text_field($data['name']),
             'category' => sanitize_text_field($data['category'] ?? 'عام'),
+            'branch' => sanitize_text_field($data['branch'] ?? 'all'),
             'icon' => sanitize_text_field($data['icon'] ?? 'dashicons-cloud'),
             'requires_login' => isset($data['requires_login']) ? (int)$data['requires_login'] : 1,
             'description' => sanitize_textarea_field($data['description']),
@@ -880,6 +881,7 @@ class SM_DB {
         $update_data = [];
         if (isset($data['name'])) $update_data['name'] = sanitize_text_field($data['name']);
         if (isset($data['category'])) $update_data['category'] = sanitize_text_field($data['category']);
+        if (isset($data['branch'])) $update_data['branch'] = sanitize_text_field($data['branch']);
         if (isset($data['icon'])) $update_data['icon'] = sanitize_text_field($data['icon']);
         if (isset($data['requires_login'])) $update_data['requires_login'] = (int)$data['requires_login'];
         if (isset($data['description'])) $update_data['description'] = sanitize_textarea_field($data['description']);
@@ -947,7 +949,7 @@ class SM_DB {
             $params[] = intval($args['member_id']);
         }
 
-        $query = "SELECT r.*, s.name as service_name, m.name as member_name, m.governorate, m.national_id, m.phone, m.email
+        $query = "SELECT r.*, s.name as service_name, s.required_fields as service_fields, m.name as member_name, m.governorate, m.national_id, m.phone, m.email
                   FROM {$wpdb->prefix}sm_service_requests r
                   JOIN {$wpdb->prefix}sm_services s ON r.service_id = s.id
                   LEFT JOIN {$wpdb->prefix}sm_members m ON r.member_id = m.id

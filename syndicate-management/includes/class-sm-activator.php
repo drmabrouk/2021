@@ -184,6 +184,7 @@ class SM_Activator {
             id mediumint(9) NOT NULL AUTO_INCREMENT,
             name tinytext NOT NULL,
             category varchar(100) DEFAULT 'عام',
+            branch varchar(50) DEFAULT 'all',
             icon varchar(50) DEFAULT 'dashicons-cloud',
             requires_login tinyint(1) DEFAULT 1,
             is_deleted tinyint(1) DEFAULT 0,
@@ -829,6 +830,11 @@ class SM_Activator {
         $deleted_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'is_deleted'));
         if (empty($deleted_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD is_deleted tinyint(1) DEFAULT 0 AFTER requires_login");
+        }
+
+        $branch_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'branch'));
+        if (empty($branch_col)) {
+            $wpdb->query("ALTER TABLE $table_name ADD branch varchar(50) DEFAULT 'all' AFTER category");
         }
     }
 

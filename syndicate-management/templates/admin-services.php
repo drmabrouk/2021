@@ -119,8 +119,31 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
 
     <!-- TAB: Requests History -->
     <div id="requests-history" class="sm-internal-tab" style="display: none;">
+        <?php if ($is_official): ?>
+            <div class="sm-filters-box" style="background: #f8fafc; padding: 20px; border-radius: 15px; margin-bottom: 20px; border: 1px solid #e2e8f0; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 200px;">
+                    <label class="sm-label" style="font-size: 12px;">بحث سريع (اسم/رقم قومي):</label>
+                    <input type="text" id="req_search_filter" class="sm-input" placeholder="اكتب للبحث..." oninput="smApplyAdminRequestFilters()">
+                </div>
+                <div>
+                    <label class="sm-label" style="font-size: 12px;">حالة الطلب:</label>
+                    <select id="req_status_filter" class="sm-select" onchange="smApplyAdminRequestFilters()">
+                        <option value="all">الكل</option>
+                        <?php foreach($union_statuses as $slug => $label) echo "<option value='$slug'>$label</option>"; ?>
+                    </select>
+                </div>
+                <div>
+                    <label class="sm-label" style="font-size: 12px;">الفرع:</label>
+                    <select id="req_branch_filter" class="sm-select" onchange="smApplyAdminRequestFilters()">
+                        <option value="all">الكل</option>
+                        <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                    </select>
+                </div>
+            </div>
+        <?php endif; ?>
+
         <div class="sm-table-container">
-            <table class="sm-table">
+            <table class="sm-table" id="admin-requests-table">
                 <thead>
                     <tr>
                         <th>رقم الطلب</th>
@@ -159,7 +182,10 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                             // Get member details for better display
                             $m_gov = SM_Settings::get_governorates()[$r->governorate] ?? $r->governorate;
                         ?>
-                            <tr>
+                            <tr class="sm-request-row"
+                                data-status="<?php echo esc_attr($r->status); ?>"
+                                data-branch="<?php echo esc_attr($r->governorate); ?>"
+                                data-search="<?php echo esc_attr($r->member_name . ' ' . $r->national_id . ' ' . $r->service_name); ?>">
                                 <td style="font-weight: 700; color: var(--sm-primary-color);">#<?php echo $r->id; ?></td>
                                 <td>
                                     <div style="font-weight: 800; color: var(--sm-dark-color);"><?php echo esc_html($r->member_name ?: 'طلب خارجي'); ?></div>
@@ -216,8 +242,16 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
             <div class="sm-form-group"><label class="sm-label">اسم الخدمة:</label><input name="name" type="text" class="sm-input" required></div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                 <div class="sm-form-group"><label class="sm-label">تصنيف الخدمة:</label><input name="category" type="text" class="sm-input" placeholder="مثال: تراخيص، شهادات، إلخ"></div>
-                <div class="sm-form-group"><label class="sm-label">كود الأيقونة (Dashicons):</label><input name="icon" type="text" class="sm-input" placeholder="dashicons-cloud" value="dashicons-cloud"></div>
+                <div class="sm-form-group">
+                    <label class="sm-label">الفرع المتاح فيه:</label>
+                    <select name="branch" class="sm-select">
+                        <option value="all">جميع الفروع</option>
+                        <option value="hq">المركز الرئيسي</option>
+                        <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                    </select>
+                </div>
             </div>
+            <div class="sm-form-group"><label class="sm-label">كود الأيقونة (Dashicons):</label><input name="icon" type="text" class="sm-input" placeholder="dashicons-cloud" value="dashicons-cloud"></div>
             <div class="sm-form-group"><label class="sm-label">وصف الخدمة:</label><textarea name="description" class="sm-textarea" rows="3"></textarea></div>
             <div class="sm-form-group"><label class="sm-label">الرسوم (0 للمجانية):</label><input name="fees" type="number" step="0.01" class="sm-input" value="0"></div>
 
@@ -444,6 +478,7 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
         modal.find('h3').text('تعديل الخدمة: ' + s.name);
         modal.find('[name="name"]').val(s.name);
         modal.find('[name="category"]').val(s.category);
+        modal.find('[name="branch"]').val(s.branch || 'all');
         modal.find('[name="icon"]').val(s.icon || 'dashicons-cloud');
         modal.find('[name="description"]').val(s.description);
         modal.find('[name="fees"]').val(s.fees);
@@ -561,6 +596,19 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
     window.viewRequest = function(r) {
         const body = $('#request-details-body').empty();
         const data = JSON.parse(r.request_data);
+
+        const fieldLabels = {};
+        if (r.service_fields) {
+            try {
+                const defs = JSON.parse(r.service_fields);
+                defs.forEach(f => fieldLabels[f.name] = f.label);
+            } catch(e) {}
+        }
+        fieldLabels['cust_name'] = 'الاسم (خارجي)';
+        fieldLabels['cust_email'] = 'البريد الإلكتروني';
+        fieldLabels['cust_phone'] = 'رقم الهاتف';
+        fieldLabels['cust_branch'] = 'الفرع';
+
         let html = `
             <div style="background:#f8fafc; padding:15px; border-radius:10px; border:1px solid #e2e8f0; margin-bottom:20px;">
                 <h4 style="margin:0 0 10px 0; color:var(--sm-primary-color);">بيانات مقدم الطلب</h4>
@@ -576,8 +624,9 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
             <div style="display:grid; gap:12px; margin-top:10px;">`;
 
         for (let k in data) {
+            const label = fieldLabels[k] || k;
             html += `<div style="background:#fff; padding:10px; border-radius:5px; border:1px solid #f1f5f9;">
-                        <span style="color:#64748b; font-weight:600; font-size:11px; display:block; margin-bottom:3px;">${k}</span>
+                        <span style="color:#64748b; font-weight:600; font-size:11px; display:block; margin-bottom:3px;">${label}</span>
                         <div style="font-weight:700;">${data[k]}</div>
                      </div>`;
         }
@@ -608,6 +657,25 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
             }
         });
     });
+
+    window.smApplyAdminRequestFilters = function() {
+        const search = $('#req_search_filter').val()?.toLowerCase() || '';
+        const status = $('#req_status_filter').val();
+        const branch = $('#req_branch_filter').val();
+
+        $('.sm-request-row').each(function() {
+            const row = $(this);
+            const matchesSearch = row.data('search').toLowerCase().includes(search);
+            const matchesStatus = status === 'all' || row.data('status') === status;
+            const matchesBranch = branch === 'all' || row.data('branch') === branch;
+
+            if (matchesSearch && matchesStatus && matchesBranch) {
+                row.show();
+            } else {
+                row.hide();
+            }
+        });
+    };
 
     window.smRollbackLog = function(logId) {
         if (!confirm('هل أنت متأكد من استعادة هذه الخدمة؟')) return;

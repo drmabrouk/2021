@@ -178,6 +178,7 @@
                                             "rank" => get_user_meta($u->ID, "sm_rank", true),
                                             "assigned" => $assigned,
                                             "officer_id" => get_user_meta($u->ID, "sm_syndicateMemberIdAttr", true),
+                                            "national_id" => get_user_meta($u->ID, "sm_national_id", true),
                                             "phone" => get_user_meta($u->ID, "sm_phone", true),
                                             "governorate" => get_user_meta($u->ID, "sm_governorate", true),
                                             "status" => get_user_meta($u->ID, "sm_account_status", true) ?: "active"
@@ -255,6 +256,10 @@
                             <option value="">-- اختر الفرع --</option>
                             <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
                         </select>
+                    </div>
+                    <div class="sm-form-group">
+                        <label class="sm-label">الرقم القومي:</label>
+                        <input type="text" name="national_id" id="edit_off_nid" class="sm-input" placeholder="14 رقم">
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">حالة الحساب:</label>
@@ -394,6 +399,7 @@
             document.getElementById('edit_off_role').value = u.role;
             document.getElementById('edit_off_rank').value = u.rank || '';
             document.getElementById('edit_off_gov').value = u.governorate || '';
+            document.getElementById('edit_off_nid').value = u.national_id || '';
             document.getElementById('edit-staff-modal').style.display = 'flex';
         };
 
