@@ -233,6 +233,7 @@ class SM_Activator {
             residence_city tinytext,
             residence_governorate tinytext,
             governorate tinytext,
+            sub_syndicate tinytext,
             phone tinytext,
             email tinytext,
             notes text,
@@ -442,6 +443,7 @@ class SM_Activator {
         self::fix_surveys_schema();
         self::fix_alerts_schema();
         self::fix_service_requests_schema();
+        self::fix_membership_requests_schema();
         self::setup_roles();
         self::seed_notification_templates();
         self::seed_publishing_templates();
@@ -526,6 +528,21 @@ class SM_Activator {
                     'content' => $data['content']
                 ]);
             }
+        }
+    }
+
+    private static function fix_membership_requests_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_membership_requests';
+
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) {
+            return;
+        }
+
+        $col = 'sub_syndicate';
+        $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+        if (empty($exists)) {
+            $wpdb->query("ALTER TABLE $table_name ADD $col tinytext AFTER governorate");
         }
     }
 

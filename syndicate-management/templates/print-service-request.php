@@ -36,52 +36,89 @@ $field_labels['cust_branch'] = 'فرع العميل';
     <meta charset="UTF-8">
     <title>مستند رقمي - <?php echo esc_html($req->service_name); ?></title>
     <style>
-        body { font-family: 'Arial', sans-serif; padding: 50px; color: #333; line-height: 1.6; }
-        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 3px solid #111F35; padding-bottom: 20px; margin-bottom: 40px; }
+        @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
+        body { font-family: 'Amiri', serif; padding: 40px; color: #1a202c; line-height: 1.8; background: #fff; }
+        .page-border { border: 10px double #111F35; padding: 40px; min-height: 1000px; position: relative; }
+        .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 50px; }
         .syndicate-info { text-align: right; }
-        .logo { max-height: 100px; }
-        .title-box { text-align: center; background: #f8fafc; padding: 20px; border-radius: 12px; margin-bottom: 40px; border: 1px solid #e2e8f0; }
-        .title-box h1 { margin: 0; font-size: 24px; color: #111F35; }
-        .content-table { width: 100%; border-collapse: collapse; margin-bottom: 40px; }
-        .content-table td { padding: 12px; border-bottom: 1px solid #eee; }
-        .content-table td:first-child { font-weight: bold; width: 30%; color: #64748b; }
-        .footer { margin-top: 60px; display: flex; justify-content: space-between; }
-        .stamp-box { width: 150px; height: 150px; border: 2px dashed #cbd5e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #cbd5e0; font-size: 12px; }
-        @media print { .no-print { display: none; } }
+        .logo-box { text-align: center; }
+        .logo { max-height: 110px; margin-bottom: 10px; }
+        .authority-info { text-align: left; }
+
+        .doc-title { text-align: center; margin: 40px 0; }
+        .doc-title h1 {
+            display: inline-block;
+            border-bottom: 3px double #111F35;
+            padding-bottom: 10px;
+            font-size: 32px;
+            margin: 0;
+            color: #111F35;
+        }
+
+        .meta-data {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            font-size: 16px;
+            font-weight: bold;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 15px;
+        }
+
+        .content-area { font-size: 20px; margin-bottom: 50px; text-align: justify; }
+        .content-table { width: 100%; border-collapse: collapse; margin: 30px 0; }
+        .content-table td { padding: 15px; border: 1px solid #cbd5e0; font-size: 18px; }
+        .content-table td:first-child { background: #f7fafc; font-weight: bold; width: 35%; color: #2d3748; }
+
+        .footer-sigs { margin-top: 80px; display: grid; grid-template-columns: 1fr 1fr 1fr; text-align: center; font-weight: bold; }
+        .stamp-area { position: absolute; bottom: 100px; left: 100px; width: 160px; height: 160px; border: 2px dashed #cbd5e0; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #cbd5e0; font-size: 14px; transform: rotate(-15deg); }
+
+        .watermark { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); font-size: 120px; color: rgba(0,0,0,0.03); z-index: -1; white-space: nowrap; pointer-events: none; }
+
+        @media print {
+            .no-print { display: none; }
+            body { padding: 0; }
+            .page-border { border: 10px double #111F35 !important; }
+        }
     </style>
 </head>
 <body>
-    <div class="no-print" style="position:fixed; top:20px; left:20px;">
-        <button onclick="window.print()" style="padding:10px 20px; background:#111F35; color:#fff; border:none; border-radius:5px; cursor:pointer;">طباعة المستند</button>
+    <div class="no-print" style="position:fixed; top:20px; left:20px; z-index: 100;">
+        <button onclick="window.print()" style="padding:12px 25px; background:#111F35; color:#fff; border:none; border-radius:8px; cursor:pointer; font-weight: bold; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">طباعة المستند الرسمي</button>
     </div>
 
-    <div class="header">
-        <div class="syndicate-info">
-            <h2 style="margin:0; font-size: 20px;"><?php echo esc_html($syndicate['authority_name']); ?></h2>
-            <h1 style="margin:5px 0; font-size: 22px; color: var(--sm-dark-color);"><?php echo esc_html($syndicate['syndicate_name']); ?></h1>
-            <p style="margin:5px 0; font-weight: bold; border-top: 1px solid #eee; padding-top: 5px;">
-                <?php echo esc_html(SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate); ?>
-            </p>
+    <div class="page-border">
+        <div class="watermark"><?php echo esc_html($syndicate['syndicate_name']); ?></div>
+
+        <div class="header">
+            <div class="syndicate-info">
+                <div style="font-size: 18px; font-weight: bold;"><?php echo esc_html($syndicate['authority_name']); ?></div>
+                <div style="font-size: 22px; font-weight: 900; color: #111F35; margin: 5px 0;"><?php echo esc_html($syndicate['syndicate_name']); ?></div>
+                <div style="font-size: 16px; font-weight: bold;"><?php echo esc_html(SM_Settings::get_governorates()[$req->governorate] ?? $req->governorate); ?></div>
+            </div>
+
+            <div class="logo-box">
+                <?php if (!empty($syndicate['syndicate_logo'])): ?>
+                    <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" class="logo">
+                <?php endif; ?>
+            </div>
+
+            <div class="authority-info" dir="ltr">
+                <div style="font-size: 14px; font-weight: bold;">Date: <?php echo date('d / m / Y'); ?></div>
+                <div style="font-size: 14px; font-weight: bold;">Ref: <?php echo $req->id; ?>/SR/<?php echo date('Y'); ?></div>
+            </div>
         </div>
-        <?php if (!empty($syndicate['syndicate_logo'])): ?>
-            <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" class="logo">
-        <?php endif; ?>
-    </div>
 
-    <div class="title-box">
-        <h1 style="text-decoration: underline; text-underline-offset: 8px;"><?php echo esc_html($req->service_name); ?></h1>
-        <div style="margin-top: 15px; display: flex; justify-content: center; gap: 30px; font-size: 14px;">
-            <span><strong>رقم المرجع:</strong> <?php echo $req->id . '/' . date('Y'); ?></span>
-            <span><strong>تاريخ الإصدار:</strong> <?php echo date_i18n('j F Y'); ?></span>
+        <div class="doc-title">
+            <h1><?php echo esc_html($req->service_name); ?></h1>
         </div>
-    </div>
 
-    <div style="margin-bottom: 30px;">
-        <p style="font-size: 18px;">تشهد إدارة النقابة بأن السيد الزميل/ <strong><?php echo esc_html($req->member_name); ?></strong></p>
-        <p>المقيد بسجلات النقابة برقم عضوية: <span dir="ltr" style="font-family: monospace; font-weight: bold; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html($req->membership_number); ?></span></p>
-        <p>والحاصل على الرقم القومي المصري: <span dir="ltr" style="font-family: monospace; font-weight: bold; background: #f1f5f9; padding: 2px 8px; border-radius: 4px;"><?php echo esc_html($req->national_id); ?></span></p>
-        <p style="margin-top: 20px;">قد تقدم بطلب للحصول على خدمة (<?php echo esc_html($req->service_name); ?>) وتم مراجعة بياناته واعتمادها أصولاً، وفيما يلي تفاصيل المستند:</p>
-    </div>
+        <div class="content-area">
+            <p>تشهد إدارة النقابة بأن السيد الزميل/ <strong><?php echo esc_html($req->member_name); ?></strong></p>
+            <p>المقيد بسجلات النقابة برقم عضوية: <strong><?php echo esc_html($req->membership_number ?: '---'); ?></strong></p>
+            <p>والحاصل على الرقم القومي المصري: <strong><?php echo esc_html($req->national_id); ?></strong></p>
+            <p style="margin-top: 30px;">قد تقدم بطلب رسمي للحصول على المستند الموضح أعلاه، وبعد المراجعة والتدقيق الفني اللازم من قبل الإدارة المختصة، تم اعتماد البيانات التالية:</p>
+        </div>
 
     <table class="content-table">
         <tr style="background: #f8fafc;"><td colspan="2" style="text-align: center; border-top: 2px solid #111F35;">بيانات المستند المعتمدة</td></tr>
