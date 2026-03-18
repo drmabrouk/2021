@@ -474,6 +474,15 @@ class SM_DB {
         $stats['total_members'] = $wpdb->get_var("SELECT COUNT(*) FROM {$wpdb->prefix}sm_members WHERE $where_member");
         $stats['total_officers'] = count(self::get_staff(['number' => -1]));
 
+        // Total Board Members
+        $stats['total_board'] = $wpdb->get_var($wpdb->prepare(
+            "SELECT COUNT(*) FROM {$wpdb->prefix}users u
+             JOIN {$wpdb->prefix}usermeta um1 ON u.ID = um1.user_id AND um1.meta_key = '{$wpdb->prefix}capabilities'
+             JOIN {$wpdb->prefix}usermeta um2 ON u.ID = um2.user_id AND um2.meta_key = 'sm_rank'
+             WHERE um1.meta_value LIKE %s AND um2.meta_value != ''",
+            '%"sm_syndicate_admin"%'
+        ));
+
         // Total Revenue
         $join_member_rev = "";
         $where_rev = "1=1";

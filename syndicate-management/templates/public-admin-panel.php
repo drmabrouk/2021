@@ -482,6 +482,11 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
             <?php endif; ?>
 
             <div style="display: flex; gap: 15px; align-items: center; border-left: 1px solid var(--sm-border-color); padding-left: 20px;">
+                <!-- Homepage Icon -->
+                <a href="<?php echo home_url(); ?>" class="sm-header-circle-icon" title="الرئيسية">
+                    <span class="dashicons dashicons-admin-home"></span>
+                </a>
+
                 <!-- Messages Icon -->
                 <a href="<?php echo add_query_arg('sm_tab', 'messaging'); ?>" class="sm-header-circle-icon" title="المراسلات والشكاوى">
                     <span class="dashicons dashicons-email"></span>
