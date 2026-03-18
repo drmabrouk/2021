@@ -52,6 +52,10 @@ $depts = SM_Settings::get_departments();
                                 <div style="font-size: 12px;"><?php echo esc_html($govs[$r->residence_governorate] ?? $r->residence_governorate); ?></div>
                                 <div style="font-size: 11px; color: #64748b;"><?php echo esc_html($r->residence_city); ?>, <?php echo esc_html($r->residence_street); ?></div>
                                 <div style="font-size: 12px; margin-top:5px; font-weight:600;"><?php echo esc_html($r->phone); ?></div>
+                                <div style="font-size: 10px; color: var(--sm-primary-color); margin-top: 5px;">
+                                    <strong>الفرع المطلوب القيد به:</strong>
+                                    <?php echo esc_html(SM_Settings::get_branch_name($r->governorate)); ?>
+                                </div>
                             </td>
                             <td>
                                 <?php

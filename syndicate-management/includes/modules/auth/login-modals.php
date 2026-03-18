@@ -68,7 +68,20 @@ $syndicate = SM_Settings::get_syndicate_info();
             <div id="reg-step-3" class="reg-step" style="display:none;">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
                     <div class="sm-form-group"><label class="sm-label">الدرجة الوظيفية المستهدفة:</label><select name="professional_grade" class="sm-select" required><?php foreach(SM_Settings::get_professional_grades() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">لجنة النقابة التابع لها:</label><select name="governorate" class="sm-select" required><option value="">-- اختر --</option><?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div class="sm-form-group">
+                        <label class="sm-label">لجنة النقابة التابع لها:</label>
+                        <select name="governorate" class="sm-select" required>
+                            <option value="">-- اختر الفرع --</option>
+                            <?php
+                            $dynamic_branches = SM_DB::get_branches_data();
+                            if (!empty($dynamic_branches)):
+                                foreach($dynamic_branches as $db): echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>"; endforeach;
+                            else:
+                                foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>";
+                            endif;
+                            ?>
+                        </select>
+                    </div>
                     <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">النقابة الفرعية / اللجنة النوعية:</label><input name="sub_syndicate" type="text" class="sm-input" placeholder="مثال: نقابة المعلمين بوسط القاهرة"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; margin-top:10px;">

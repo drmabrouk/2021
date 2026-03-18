@@ -73,6 +73,7 @@
                 <span class="dashicons dashicons-money-alt" style="vertical-align: middle;"></span> تحصيل مبلغ مالي جديد
             </h5>
             <form id="record-payment-form">
+                <?php wp_nonce_field('sm_finance_action', 'nonce'); ?>
                 <input type="hidden" name="member_id" value="<?php echo $member_id; ?>">
                 <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px;">
                     <div style="grid-column: span 2;">
