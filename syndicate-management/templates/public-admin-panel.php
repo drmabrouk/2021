@@ -641,7 +641,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                         <a href="<?php echo add_query_arg('sm_tab', 'digital-services'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-cloud"></span> الخدمات الرقمية</a>
                     </li>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'surveys' ? 'sm-active' : ''; ?>">
-                        <a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-welcome-learn-more"></span> اختبارات مزاولة المهنة</a>
+                        <a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-welcome-learn-more"></span> اختبارات الممارسة المهنية</a>
                     </li>
                 <?php endif; ?>
 
