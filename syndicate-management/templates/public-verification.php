@@ -43,34 +43,46 @@
     <div id="sm-verify-results" style="margin-top: 50px; display: grid; gap: 30px;"></div>
 
     <!-- Professional Guidance Section (Moved Below Search) -->
-    <div style="background: #fff; border: 1px solid #e2e8f0; padding: 35px; border-radius: 24px; margin-top: 60px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);">
-        <div style="display: flex; gap: 20px; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #f1f5f9; padding-bottom: 15px;">
+    <details style="background: #fff; border: 1px solid #e2e8f0; border-radius: 24px; margin-top: 60px; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05); overflow: hidden;">
+        <summary style="display: flex; gap: 20px; align-items: center; padding: 25px 35px; cursor: pointer; list-style: none; outline: none; background: #f8fafc; transition: 0.3s;">
             <div style="width: 45px; height: 45px; background: var(--sm-primary-color); color: #fff; border-radius: 12px; display: flex; align-items: center; justify-content: center;">
                 <span class="dashicons dashicons-welcome-learn-more" style="font-size: 24px; width: 24px; height: 24px;"></span>
             </div>
-            <h4 style="margin: 0; color: var(--sm-dark-color); font-weight: 900; font-size: 1.3em;">كيفية استخدام بوابة التحقق الرقمية</h4>
-        </div>
+            <div style="flex: 1;">
+                <h4 style="margin: 0; color: var(--sm-dark-color); font-weight: 900; font-size: 1.3em;">كيفية استخدام بوابة التحقق الرقمية</h4>
+                <p style="margin: 5px 0 0 0; font-size: 12px; color: #64748b;">اضغط لعرض التعليمات والإرشادات</p>
+            </div>
+            <span class="dashicons dashicons-arrow-down-alt2" style="color: #94a3b8; transition: 0.3s;"></span>
+        </summary>
 
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
-            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
-                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">1. اختيار نوع الاستعلام</div>
-                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">حدد ما إذا كنت تريد البحث بالاسم، الرقم القومي، أو رقم ترخيص محدد من القائمة المنسدلة.</p>
+        <div style="padding: 35px; border-top: 1px solid #f1f5f9;">
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 25px;">
+                <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                    <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">1. اختيار نوع الاستعلام</div>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">حدد ما إذا كنت تريد البحث بالاسم، الرقم القومي، أو رقم ترخيص محدد من القائمة المنسدلة.</p>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                    <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">2. إدخال البيانات بدقة</div>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">تأكد من كتابة الاسم كما هو مدون في الأوراق الرسمية، أو إدخال الرقم القومي المكون من 14 رقماً.</p>
+                </div>
+                <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
+                    <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">3. مراجعة النتائج</div>
+                    <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">ستظهر لك بيانات المستند وحالة صلاحيته (سارٍ أو منتهي) فور مطابقتها مع قواعد بيانات النقابة.</p>
+                </div>
             </div>
-            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
-                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">2. إدخال البيانات بدقة</div>
-                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">تأكد من كتابة الاسم كما هو مدون في الأوراق الرسمية، أو إدخال الرقم القومي المكون من 14 رقماً.</p>
-            </div>
-            <div style="padding: 15px; background: #f8fafc; border-radius: 15px; border: 1px solid #edf2f7;">
-                <div style="font-weight: 800; color: var(--sm-primary-color); margin-bottom: 8px;">3. مراجعة النتائج</div>
-                <p style="margin: 0; font-size: 13px; color: #64748b; line-height: 1.6;">ستظهر لك بيانات المستند وحالة صلاحيته (سارٍ أو منتهي) فور مطابقتها مع قواعد بيانات النقابة.</p>
-            </div>
-        </div>
 
-        <div style="margin-top: 25px; padding: 15px 20px; background: #fff5f5; border-radius: 12px; border: 1px solid #feb2b2; display: flex; gap: 15px; align-items: center;">
-            <span class="dashicons dashicons-warning" style="color: #c53030;"></span>
-            <p style="margin: 0; font-size: 12px; color: #c53030; font-weight: 600;">ملاحظة: تهدف هذه البوابة للتحقق من صحة البيانات فقط ولا تعتبر بديلاً عن أصول المستندات الرسمية المعتمدة.</p>
+            <div style="margin-top: 25px; padding: 15px 20px; background: #fff5f5; border-radius: 12px; border: 1px solid #feb2b2; display: flex; gap: 15px; align-items: center;">
+                <span class="dashicons dashicons-warning" style="color: #c53030;"></span>
+                <p style="margin: 0; font-size: 12px; color: #c53030; font-weight: 600;">ملاحظة: تهدف هذه البوابة للتحقق من صحة البيانات فقط ولا تعتبر بديلاً عن أصول المستندات الرسمية المعتمدة.</p>
+            </div>
         </div>
-    </div>
+    </details>
+
+    <style>
+        details[open] summary .dashicons-arrow-down-alt2 { transform: rotate(180deg); }
+        summary::-webkit-details-marker { display: none; }
+        summary:hover { background: #f1f5f9; }
+    </style>
 </div>
 
 <style>
