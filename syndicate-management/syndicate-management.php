@@ -25,7 +25,7 @@ define('SM_PLUGIN_URL', plugin_dir_url(__FILE__));
  * The code that runs during plugin activation.
  */
 function activate_syndicate_management() {
-    require_once SM_PLUGIN_DIR . 'includes/class-sm-activator.php';
+    require_once SM_PLUGIN_DIR . 'includes/core/class-sm-activator.php';
     SM_Activator::activate();
 }
 
@@ -33,7 +33,7 @@ function activate_syndicate_management() {
  * The code that runs during plugin deactivation.
  */
 function deactivate_syndicate_management() {
-    require_once SM_PLUGIN_DIR . 'includes/class-sm-deactivator.php';
+    require_once SM_PLUGIN_DIR . 'includes/core/class-sm-deactivator.php';
     SM_Deactivator::deactivate();
 }
 
