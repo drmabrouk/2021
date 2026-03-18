@@ -109,63 +109,37 @@ function smSubmitSurveyResponse(surveyId, questionsCount) {
 </script>
 
 <?php if ($is_officer): ?>
-<div class="sm-card-grid" style="margin-bottom: 30px;">
-    <div class="sm-stat-card">
-        <div style="font-size: 0.85em; color: var(--sm-text-gray); margin-bottom: 10px; font-weight: 700;">إجمالي الأعضاء المسجلين</div>
-        <div style="font-size: 2.5em; font-weight: 900; color: var(--sm-primary-color);"><?php echo esc_html($stats['total_members'] ?? 0); ?></div>
+<div class="sm-card-grid" style="margin-bottom: 40px; grid-template-columns: repeat(4, 1fr); gap: 25px;">
+    <div class="sm-stat-card" style="background: #fff; padding: 30px; border-radius: 20px; border: 1px solid var(--sm-border-color); text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: 0.3s;">
+        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #3182ce, #4299e1); color: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(49, 130, 206, 0.3);">
+            <span class="dashicons dashicons-groups" style="font-size: 26px; width: 26px; height: 26px;"></span>
+        </div>
+        <div style="font-size: 0.9em; color: #64748b; margin-bottom: 10px; font-weight: 700;">إجمالي الأعضاء المسجلين</div>
+        <div style="font-size: 2em; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_members'] ?? 0); ?></div>
     </div>
-    <div class="sm-stat-card">
-        <div style="font-size: 0.85em; color: var(--sm-text-gray); margin-bottom: 10px; font-weight: 700;">إجمالي الطاقم الإداري</div>
-        <div style="font-size: 2.5em; font-weight: 900; color: var(--sm-secondary-color);"><?php echo esc_html($stats['total_officers'] ?? 0); ?></div>
-    </div>
-    <div class="sm-stat-card">
-        <div style="font-size: 0.85em; color: var(--sm-text-gray); margin-bottom: 10px; font-weight: 700;">إجمالي إيرادات النقابة</div>
-        <div style="font-size: 2.5em; font-weight: 900; color: #38a169;"><?php echo number_format($stats['total_revenue'] ?? 0, 2); ?> <span style="font-size: 0.4em;">ج.م</span></div>
-    </div>
-</div>
 
-<!-- Extra Stats Card -->
-<div style="background: #fff; padding: 30px; border: 1px solid var(--sm-border-color); border-radius: 12px; margin-bottom: 30px; box-shadow: var(--sm-shadow);">
-    <h3 style="margin-top:0; font-size: 1.2em; color: var(--sm-dark-color); border-bottom: 2px solid #f1f5f9; padding-bottom: 15px; margin-bottom: 25px; display: flex; align-items: center; gap: 10px;">
-        <span class="dashicons dashicons-chart-bar" style="color: var(--sm-primary-color);"></span> إحصائيات النقابة
-    </h3>
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px;">
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الأعضاء المسجلين</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_members'] ?? 0); ?></div>
+    <div class="sm-stat-card" style="background: #fff; padding: 30px; border-radius: 20px; border: 1px solid var(--sm-border-color); text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: 0.3s;">
+        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #dd6b20, #ed8936); color: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(221, 107, 32, 0.3);">
+            <span class="dashicons dashicons-id-alt" style="font-size: 26px; width: 26px; height: 26px;"></span>
         </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطاقم الإداري</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_officers'] ?? 0); ?></div>
+        <div style="font-size: 0.9em; color: #64748b; margin-bottom: 10px; font-weight: 700;">تراخيص مزاولة المهنة</div>
+        <div style="font-size: 2em; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_practice_licenses'] ?? 0); ?></div>
+    </div>
+
+    <div class="sm-stat-card" style="background: #fff; padding: 30px; border-radius: 20px; border: 1px solid var(--sm-border-color); text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: 0.3s;">
+        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #805ad5, #9f7aea); color: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(128, 90, 213, 0.3);">
+            <span class="dashicons dashicons-building" style="font-size: 26px; width: 26px; height: 26px;"></span>
         </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي مجلس النقابة</div>
-            <div style="font-size: 24px; font-weight: 900; color: #38a169;"><?php echo number_format($stats['total_board'] ?? 0); ?></div>
+        <div style="font-size: 0.9em; color: #64748b; margin-bottom: 10px; font-weight: 700;">إجمالي تراخيص المنشآت</div>
+        <div style="font-size: 2em; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_facility_licenses'] ?? 0); ?></div>
+    </div>
+
+    <div class="sm-stat-card" style="background: #fff; padding: 30px; border-radius: 20px; border: 1px solid var(--sm-border-color); text-align: center; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05); transition: 0.3s;">
+        <div style="width: 55px; height: 55px; background: linear-gradient(135deg, #38a169, #48bb78); color: #fff; border-radius: 15px; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; box-shadow: 0 4px 12px rgba(56, 161, 105, 0.3);">
+            <span class="dashicons dashicons-money-alt" style="font-size: 26px; width: 26px; height: 26px;"></span>
         </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطلبات المنفذة</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-primary-color);"><?php echo number_format($stats['total_executed_requests'] ?? 0); ?></div>
-        </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">تراخيص مزاولة المهنة</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_practice_licenses'] ?? 0); ?></div>
-        </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي تصاريح العمل</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_work_permits'] ?? 0); ?></div>
-        </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي تراخيص المنشآت</div>
-            <div style="font-size: 24px; font-weight: 900; color: #805ad5;"><?php echo number_format($stats['total_facility_licenses'] ?? 0); ?></div>
-        </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">إجمالي الطلبات المقدمة</div>
-            <div style="font-size: 24px; font-weight: 900; color: #3182ce;"><?php echo number_format($stats['total_requests'] ?? 0); ?></div>
-        </div>
-        <div style="background: #f8fafc; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #edf2f7;">
-            <div style="font-size: 11px; color: #64748b; font-weight: 700; margin-bottom: 8px;">طلبات الخدمات الرقمية</div>
-            <div style="font-size: 24px; font-weight: 900; color: var(--sm-dark-color);"><?php echo number_format($stats['total_service_requests'] ?? 0); ?></div>
-        </div>
+        <div style="font-size: 0.9em; color: #64748b; margin-bottom: 10px; font-weight: 700;">إجمالي إيرادات النقابة</div>
+        <div style="font-size: 2em; font-weight: 900; color: #38a169;"><?php echo number_format($stats['total_revenue'] ?? 0, 2); ?> <span style="font-size: 0.4em;">ج.م</span></div>
     </div>
 </div>
 

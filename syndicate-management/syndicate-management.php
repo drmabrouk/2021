@@ -2,8 +2,12 @@
 /**
  * Plugin Name: Syndicate Management (إدارة النقابة)
  * Description: نظام شامل لإدارة الأعضاء، التراخيص، والتقارير النقابية والمالية.
- * Version: 97.2.3
- * Author: AHMED MABROUK
+ * Version: 98.1.0
+ * Author: Dr. Ahmed Mabrouk
+ * Author URI: https://irseg.org
+ * Organization: Injuries and Rehabilitation Syndicate – Arab Republic of Egypt
+ * Email: mabrouk@dr.com
+ * Website: irseg.org
  * Language: ar
  * Text Domain: syndicate-management
  * Domain Path: /languages
