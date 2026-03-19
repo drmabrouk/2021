@@ -235,7 +235,7 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">تغيير الدور:</label>
-                        <select name="role" id="edit_off_role" class="sm-select">
+                        <select name="role" id="edit_off_role" class="sm-select" onchange="smToggleRankField(this, 'edit_off_rank_group')">
                             <?php
                             global $wp_roles;
                             foreach($wp_roles->roles as $role_key => $role_data): ?>
@@ -243,7 +243,7 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="sm-form-group">
+                    <div class="sm-form-group" id="edit_off_rank_group">
                         <label class="sm-label">الرتبة / الدرجة المهنية:</label>
                         <select name="rank" id="edit_off_rank" class="sm-select">
                             <option value="">-- اختر الرتبة --</option>
@@ -307,7 +307,7 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">اختيار الدور:</label>
-                        <select name="role" class="sm-select">
+                        <select name="role" id="add_off_role" class="sm-select" onchange="smToggleRankField(this, 'add_off_rank_group')">
                             <?php
                             global $wp_roles;
                             foreach($wp_roles->roles as $role_key => $role_data): ?>
@@ -315,7 +315,7 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="sm-form-group">
+                    <div class="sm-form-group" id="add_off_rank_group">
                         <label class="sm-label">الرتبة / الدرجة المهنية:</label>
                         <select name="rank" class="sm-select">
                             <option value="">-- اختر الرتبة --</option>
@@ -368,6 +368,19 @@
     </div>
 
     <script>
+    window.smToggleRankField = function(roleSelect, groupId) {
+        const group = document.getElementById(groupId);
+        if (!group) return;
+        // Only sm_syndicate_member (and potentially sm_member) should have professional grades
+        if (roleSelect.value === 'sm_syndicate_member' || roleSelect.value === 'sm_member') {
+            group.style.display = 'block';
+        } else {
+            group.style.display = 'none';
+            const select = group.querySelector('select');
+            if (select) select.value = '';
+        }
+    };
+
     document.addEventListener('click', function(e) {
         const trigger = e.target.closest('.sm-actions-trigger');
         if (trigger) {
@@ -438,6 +451,8 @@
             document.getElementById('edit_off_role').value = u.role;
             document.getElementById('edit_off_rank').value = u.rank || '';
             document.getElementById('edit_off_nid').value = u.national_id || '';
+
+            smToggleRankField(document.getElementById('edit_off_role'), 'edit_off_rank_group');
 
             const govField = document.getElementById('edit_off_gov');
             if (govField) {
