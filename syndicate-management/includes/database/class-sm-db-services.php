@@ -88,7 +88,7 @@ class SM_DB_Services {
 
     public static function submit_service_request($data) {
         global $wpdb;
-        $res = $wpdb->insert("{$wpdb->prefix}sm_service_requests", array(
+        $insert_data = array(
             'service_id' => intval($data['service_id']),
             'member_id' => intval($data['member_id']),
             'request_data' => $data['request_data'], // JSON string
@@ -96,7 +96,11 @@ class SM_DB_Services {
             'status' => 'pending',
             'created_at' => current_time('mysql'),
             'updated_at' => current_time('mysql')
-        ));
+        );
+        if (isset($data['transaction_code'])) $insert_data['transaction_code'] = sanitize_text_field($data['transaction_code']);
+        if (isset($data['payment_receipt_url'])) $insert_data['payment_receipt_url'] = esc_url_raw($data['payment_receipt_url']);
+
+        $res = $wpdb->insert("{$wpdb->prefix}sm_service_requests", $insert_data);
         return $res ? $wpdb->insert_id : false;
     }
 

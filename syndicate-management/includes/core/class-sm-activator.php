@@ -448,6 +448,10 @@ class SM_Activator {
             address text,
             manager varchar(255),
             description text,
+            bank_iban varchar(50),
+            bank_local text,
+            digital_wallet varchar(20),
+            instapay_id varchar(100),
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             UNIQUE KEY slug (slug)
@@ -459,7 +463,9 @@ class SM_Activator {
         update_option('sm_db_version', SM_VERSION);
         update_option('sm_plugin_version', SM_VERSION);
 
+        self::fix_branches_schema();
         self::fix_services_schema();
+        self::fix_service_requests_schema();
         self::fix_surveys_schema();
         self::fix_alerts_schema();
         self::fix_service_requests_schema();
@@ -581,6 +587,17 @@ class SM_Activator {
         $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'admin_notes'));
         if (empty($exists)) {
             $wpdb->query("ALTER TABLE $table_name ADD admin_notes text AFTER status");
+        }
+
+        $cols = [
+            'transaction_code' => 'varchar(100)',
+            'payment_receipt_url' => 'text'
+        ];
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def AFTER fees_paid");
+            }
         }
     }
 
@@ -838,6 +855,26 @@ class SM_Activator {
         $birth_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'province_of_birth'));
         if (empty($birth_col)) {
             $wpdb->query("ALTER TABLE $table_name ADD province_of_birth tinytext AFTER governorate");
+        }
+    }
+
+    private static function fix_branches_schema() {
+        global $wpdb;
+        $table_name = $wpdb->prefix . 'sm_branches_data';
+        if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
+
+        $cols = [
+            'bank_iban' => 'varchar(50)',
+            'bank_local' => 'text',
+            'digital_wallet' => 'varchar(20)',
+            'instapay_id' => 'varchar(100)'
+        ];
+
+        foreach ($cols as $col => $type) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $type AFTER description");
+            }
         }
     }
 

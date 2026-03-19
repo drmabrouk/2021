@@ -76,14 +76,112 @@ window.smTrackServiceRequest = function() {
 };
 
 window.smOpenProgressiveForm = function(btn, s) {
-    const container = document.getElementById('sm-service-dropdown-container'); const body = document.getElementById('sm-dropdown-body'); container.style.display = 'flex';
+    const container = document.getElementById('sm-service-dropdown-container');
+    const body = document.getElementById('sm-dropdown-body');
+    container.style.display = 'flex';
+
     let reqFields = []; try { reqFields = JSON.parse(s.required_fields); } catch(e){}
-    body.innerHTML = `<div style="margin-bottom:30px;"><h3 style="margin:0; font-weight:900; color:var(--sm-dark-color);">طلب خدمة: ${s.name}</h3></div><form id="sm-public-service-form"><input type="hidden" name="service_id" value="${s.id}"><div class="sm-form-step active" id="step-1"><h4 style="margin-bottom:20px; color:var(--sm-primary-color); font-weight:800;">1. البيانات المطلوبة</h4>${reqFields.length > 0 ? reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input name="field_${f.name}" type="${f.type||'text'}" class="sm-input" required></div>`).join('') : '<p>لا توجد حقول إضافية مطلوبة.</p>'}<button type="submit" class="sm-btn" style="width:100%; margin-top:20px;">تأكيد وتقديم الطلب</button></div></form>`;
-    document.getElementById('sm-public-service-form').onsubmit = function(e) {
-        e.preventDefault(); const formData = new FormData(this); const data = {}; formData.forEach((value, key) => { if(key.startsWith('field_')) data[key.replace('field_', '')] = value; });
-        const fd = new FormData(); fd.append('action', 'sm_submit_service_request'); fd.append('service_id', formData.get('service_id')); fd.append('member_id', '<?php echo $current_member ? $current_member->id : 0; ?>'); fd.append('request_data', JSON.stringify(data));
-        fetch(ajaxurl, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{ if(res.success) { body.innerHTML = `<div style="text-align:center;"><div style="font-size:60px; margin-bottom:20px;">✅</div><h3 style="font-weight:900; font-size:1.8em;">تم تقديم طلبك بنجاح!</h3><div style="background:#f8fafc; border:2px dashed var(--sm-primary-color); padding:15px; font-size:24px; font-weight:900; color:var(--sm-primary-color); border-radius:15px; margin-bottom:30px;">${res.data}</div><button onclick="location.reload()" class="sm-btn" style="width:100%;">إغلاق</button></div>`; } else alert(res.data); });
+
+    // Fetch branch info for payment if member is logged in
+    const branchInfo = <?php echo $current_member ? json_encode(SM_DB::get_branches_data()) : '[]'; ?>;
+    const myBranch = branchInfo.find(b => b.slug === '<?php echo $current_member ? $current_member->governorate : ""; ?>') || branchInfo[0] || {};
+
+    const renderStep = (step) => {
+        let html = `<div style="margin-bottom:25px; border-bottom:1px solid #eee; pb:15px;"><h3 style="margin:0; font-weight:900; color:var(--sm-dark-color); font-size:1.4em;">${s.name}</h3></div>`;
+
+        if (step === 1) {
+            html += `<div id="service-step-1">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الأولى: استكمال البيانات</h4>
+                <div id="service-req-fields">
+                    ${reqFields.length > 0 ? reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input id="f_${f.name}" type="${f.type||'text'}" class="sm-input" required></div>`).join('') : '<p style="color:#64748b; font-size:13px;">لا توجد حقول إضافية مطلوبة لهذه الخدمة.</p>'}
+                </div>
+                <button onclick="smServiceGoTo(2)" class="sm-btn" style="width:100%; margin-top:20px;">التالي: الشروط والأحكام</button>
+            </div>`;
+        } else if (step === 2) {
+            html += `<div id="service-step-2">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثانية: الشروط والأحكام</h4>
+                <div style="background:#f8fafc; padding:20px; border-radius:15px; font-size:13px; color:#4a5568; line-height:1.8; max-height:200px; overflow-y:auto; margin-bottom:20px; border:1px solid #e2e8f0;">
+                    1. أقر بصحة كافة البيانات المدخلة في هذا الطلب.<br>
+                    2. أتعهد بسداد الرسوم المقررة للخدمة عبر القنوات المعتمدة.<br>
+                    3. للنقابة الحق في رفض الطلب في حال عدم مطابقة البيانات أو الوثائق.<br>
+                    4. يتم معالجة الطلب خلال مدة 3-5 أيام عمل من تاريخ تأكيد السداد.
+                </div>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:25px;">
+                    <input type="checkbox" id="sm_terms_agree" style="width:20px; height:20px;">
+                    <label for="sm_terms_agree" style="font-weight:700; font-size:14px; color:var(--sm-dark-color); cursor:pointer;">أوافق على الشروط والأحكام المذكورة أعلاه</label>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                    <button onclick="smServiceGoTo(1)" class="sm-btn sm-btn-outline">السابق</button>
+                    <button onclick="smServiceGoTo(3)" class="sm-btn">التالي: سداد الرسوم</button>
+                </div>
+            </div>`;
+        } else if (step === 3) {
+            const feesText = s.fees > 0 ? `${s.fees} ج.م` : 'مجانية';
+            html += `<div id="service-step-3">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثالثة: سداد الرسوم المقررة</h4>
+                <div style="background:#fffaf0; border:1px solid #feebc8; padding:15px; border-radius:12px; margin-bottom:20px;">
+                    <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><strong>إجمالي الرسوم:</strong> <span style="color:var(--sm-primary-color); font-weight:900;">${feesText}</span></div>
+                    <div style="font-size:12px; color:#9c4221;">يرجى التحويل للفرع التابع له باستخدام البيانات التالية:</div>
+                </div>
+                <div style="display:grid; gap:10px; margin-bottom:25px; font-size:13px;">
+                    ${myBranch.bank_iban ? `<div style="background:#f1f5f9; padding:10px; border-radius:8px;"><strong>IBAN:</strong> ${myBranch.bank_iban}</div>` : ''}
+                    ${myBranch.instapay_id ? `<div style="background:#f1f5f9; padding:10px; border-radius:8px;"><strong>Instapay:</strong> ${myBranch.instapay_id}</div>` : ''}
+                    ${myBranch.digital_wallet ? `<div style="background:#f1f5f9; padding:10px; border-radius:8px;"><strong>المحفظة:</strong> ${myBranch.digital_wallet}</div>` : ''}
+                </div>
+                <div class="sm-form-group">
+                    <label class="sm-label">رقم عملية التحويل (Reference):</label>
+                    <input id="sm_trans_code" type="text" class="sm-input" placeholder="أدخل رقم الإيصال أو العملية">
+                </div>
+                <div class="sm-form-group">
+                    <label class="sm-label">صورة الإيصال (اختياري):</label>
+                    <input id="sm_trans_file" type="file" class="sm-input" accept="image/*">
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; margin-top:10px;">
+                    <button onclick="smServiceGoTo(2)" class="sm-btn sm-btn-outline">السابق</button>
+                    <button onclick="smSubmitFinalServiceRequest()" class="sm-btn" style="background:var(--sm-dark-color);">تأكيد وإرسال الطلب</button>
+                </div>
+            </div>`;
+        }
+        body.innerHTML = html;
     };
+
+    let currentFormData = {};
+    window.smServiceGoTo = (step) => {
+        if (step === 2) {
+            const inputs = document.querySelectorAll('#service-req-fields input');
+            for(let i of inputs) { if(i.required && !i.value) return alert('يرجى ملء الحقول المطلوبة.'); currentFormData[i.id.replace('f_','')] = i.value; }
+        }
+        if (step === 3) {
+            if (!document.getElementById('sm_terms_agree').checked) return alert('يجب الموافقة على الشروط للمتابعة.');
+        }
+        renderStep(step);
+    };
+
+    window.smSubmitFinalServiceRequest = () => {
+        const transCode = document.getElementById('sm_trans_code').value;
+        const transFile = document.getElementById('sm_trans_file').files[0];
+
+        const fd = new FormData();
+        fd.append('action', 'sm_submit_service_request');
+        fd.append('service_id', s.id);
+        fd.append('member_id', '<?php echo $current_member ? $current_member->id : 0; ?>');
+        fd.append('request_data', JSON.stringify(currentFormData));
+        fd.append('transaction_code', transCode);
+        if(transFile) fd.append('payment_receipt', transFile);
+
+        const btn = document.querySelector('#service-step-3 .sm-btn:last-child');
+        btn.disabled = true; btn.innerText = 'جاري التقديم...';
+
+        fetch(ajaxurl, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{
+            if(res.success) {
+                body.innerHTML = `<div style="text-align:center; padding:20px;"><div style="font-size:60px; margin-bottom:20px;">✅</div><h3 style="font-weight:900; font-size:1.8em;">تم تقديم طلبك بنجاح!</h3><p style="color:#64748b; margin-bottom:20px;">كود تتبع الطلب الخاص بك:</p><div style="background:#f8fafc; border:2px dashed var(--sm-primary-color); padding:15px; font-size:24px; font-weight:900; color:var(--sm-primary-color); border-radius:15px; margin-bottom:30px;">${res.data}</div><button onclick="location.reload()" class="sm-btn" style="width:100%;">إغلاق</button></div>`;
+            } else {
+                alert(res.data); btn.disabled = false; btn.innerText = 'تأكيد وإرسال الطلب';
+            }
+        });
+    };
+
+    renderStep(1);
 };
 
 function smApplyServiceFilters() {

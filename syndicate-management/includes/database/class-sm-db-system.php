@@ -250,7 +250,11 @@ class SM_DB_System {
             'email' => sanitize_email($data['email']),
             'address' => sanitize_text_field($data['address']),
             'manager' => sanitize_text_field($data['manager']),
-            'description' => sanitize_textarea_field($data['description'])
+            'description' => sanitize_textarea_field($data['description']),
+            'bank_iban' => sanitize_text_field($data['bank_iban'] ?? ''),
+            'bank_local' => sanitize_text_field($data['bank_local'] ?? ''),
+            'digital_wallet' => sanitize_text_field($data['digital_wallet'] ?? ''),
+            'instapay_id' => sanitize_text_field($data['instapay_id'] ?? '')
         ];
         if (!empty($data['id'])) return $wpdb->update($table, $branch_data, ['id' => intval($data['id'])]);
         else return $wpdb->insert($table, $branch_data);

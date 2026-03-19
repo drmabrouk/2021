@@ -120,25 +120,54 @@ $syndicate = SM_Settings::get_syndicate_info();
     <div class="sm-modal-content" style="background:white; width:100%; max-width:450px; padding:40px; border-radius:24px; position:relative;">
         <button onclick="smToggleActivation()" style="position:absolute; top:20px; left:20px; border:none; background:none; font-size:24px; cursor:pointer; color:#94a3b8;">&times;</button>
         <div style="text-align:center; margin-bottom:30px;"><h3 style="margin:0; font-weight:900;">تفعيل الحساب الرقمي</h3><p style="color:#64748b; font-size:13px; margin-top:5px;">خطوات بسيطة للوصول لخدماتك الإلكترونية</p></div>
+
+        <div class="sm-steps-indicator" style="display:flex; justify-content:center; gap:10px; margin-bottom:25px;">
+            <?php for($i=1; $i<=4; $i++): ?>
+                <span id="act-dot-<?php echo $i; ?>" style="width:30px; height:30px; background:#edf2f7; color:#718096; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:13px; transition:0.3s;"><?php echo $i; ?></span>
+            <?php endfor; ?>
+        </div>
+
         <div id="activation-step-1">
-            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;"><span style="width:30px; height:30px; background:var(--sm-primary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">1</span><span style="width:30px; height:30px; background:#edf2f7; color:#718096; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">2</span><span style="width:30px; height:30px; background:#edf2f7; color:#718096; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</span></div>
-            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الأولى: التحقق من الهوية بالسجلات</p>
+            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الأولى: اختر فرع النقابة التابع له</p>
+            <div class="sm-form-group" style="margin-bottom:20px;">
+                <select id="act_branch" class="sm-select" style="width:100%;">
+                    <option value="">-- اختر الفرع --</option>
+                    <?php
+                    $active_branches = SM_DB::get_branches_data();
+                    foreach($active_branches as $b) echo "<option value='".esc_attr($b->slug)."'>".esc_html($b->name)."</option>";
+                    ?>
+                </select>
+            </div>
+            <button onclick="smActivateGoTo(2)" class="sm-btn" style="width:100%;">التالي: التحقق من الهوية</button>
+        </div>
+
+        <div id="activation-step-2" style="display:none;">
+            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الثانية: التحقق من الهوية بالسجلات</p>
             <div class="sm-form-group" style="margin-bottom:15px;"><input type="text" id="act_national_id" class="sm-input" placeholder="الرقم القومي (14 رقم)" style="width:100%;"></div>
             <div class="sm-form-group" style="margin-bottom:15px;"><input type="text" id="act_mem_no" class="sm-input" placeholder="رقم القيد النقابي" style="width:100%;"></div>
-            <button onclick="smActivateStep1()" class="sm-btn" style="width:100%;">تحقق وانتقل للخطوة التالية</button>
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                <button onclick="smActivateGoTo(1)" class="sm-btn sm-btn-outline">السابق</button>
+                <button onclick="smActivateStep2Check()" class="sm-btn">تحقق والتالي</button>
+            </div>
         </div>
-        <div id="activation-step-2" style="display:none;">
-            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;"><span style="width:30px; height:30px; background:#38a169; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">✓</span><span style="width:30px; height:30px; background:var(--sm-primary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">2</span><span style="width:30px; height:30px; background:#edf2f7; color:#718096; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</span></div>
-            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الثانية: تأكيد بيانات التواصل</p>
+
+        <div id="activation-step-3" style="display:none;">
+            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الثالثة: تأكيد بيانات التواصل</p>
             <div class="sm-form-group" style="margin-bottom:15px;"><input type="email" id="act_email" class="sm-input" placeholder="البريد الإلكتروني المعتمد" style="width:100%;"></div>
             <div class="sm-form-group" style="margin-bottom:15px;"><input type="text" id="act_phone" class="sm-input" placeholder="رقم الهاتف الحالي" style="width:100%;"></div>
-            <button onclick="smActivateStep2()" class="sm-btn" style="width:100%;">تأكيد البيانات</button>
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                <button onclick="smActivateGoTo(2)" class="sm-btn sm-btn-outline">السابق</button>
+                <button onclick="smActivateGoTo(4)" class="sm-btn">تأكيد البيانات</button>
+            </div>
         </div>
-        <div id="activation-step-3" style="display:none;">
-            <div style="display:flex; justify-content:center; gap:10px; margin-bottom:20px;"><span style="width:30px; height:30px; background:#38a169; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">✓</span><span style="width:30px; height:30px; background:#38a169; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">✓</span><span style="width:30px; height:30px; background:var(--sm-primary-color); color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold;">3</span></div>
-            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الثالثة: تعيين كلمة المرور</p>
+
+        <div id="activation-step-4" style="display:none;">
+            <p style="font-size:14px; color:#4a5568; margin-bottom:20px; text-align:center;">المرحلة الرابعة: تعيين كلمة المرور</p>
             <div class="sm-form-group" style="margin-bottom:20px; position:relative;"><input type="password" id="act_pass" class="sm-input" placeholder="كلمة المرور (10 خانات على الأقل)" style="width:100%;"><span class="dashicons dashicons-visibility sm-password-toggle" onclick="smTogglePass('act_pass', this)"></span></div>
-            <button onclick="smActivateFinal()" class="sm-btn" style="width:100%;">إكمال التنشيط والدخول</button>
+            <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                <button onclick="smActivateGoTo(3)" class="sm-btn sm-btn-outline">السابق</button>
+                <button onclick="smActivateFinal()" class="sm-btn">إكمال التنشيط والدخول</button>
+            </div>
         </div>
     </div>
 </div>
@@ -150,7 +179,39 @@ function smTogglePass(id, btn) {
     else { input.type = "password"; btn.classList.replace("dashicons-hidden", "dashicons-visibility"); }
 }
 function smToggleRecovery() { const m = document.getElementById("sm-recovery-modal"); m.style.display = m.style.display === "none" ? "flex" : "none"; }
-function smToggleActivation() { const m = document.getElementById("sm-activation-modal"); m.style.display = m.style.display === "none" ? "flex" : "none"; document.getElementById("activation-step-1").style.display = "block"; document.getElementById("activation-step-2").style.display = "none"; }
+function smToggleActivation() { const m = document.getElementById("sm-activation-modal"); m.style.display = m.style.display === "none" ? "flex" : "none"; if(m.style.display==="flex") smActivateGoTo(1); }
+function smActivateGoTo(step) {
+    if (step === 2) { if (!document.getElementById("act_branch").value) return alert("يرجى اختيار الفرع أولاً."); }
+    if (step === 4) {
+        const email = document.getElementById("act_email").value;
+        const phone = document.getElementById("act_phone").value;
+        if(!/^\S+@\S+\.\S+$/.test(email)) return alert("يرجى إدخال بريد إلكتروني صحيح");
+        if(phone.length < 10) return alert("يرجى إدخال رقم هاتف صحيح");
+    }
+    document.querySelectorAll("[id^='activation-step-']").forEach(s => s.style.display = "none");
+    document.getElementById("activation-step-" + step).style.display = "block";
+    for (let i = 1; i <= 4; i++) {
+        const dot = document.getElementById("act-dot-" + i);
+        if (i < step) { dot.style.background = "#38a169"; dot.style.color = "white"; dot.innerText = "✓"; }
+        else if (i === step) { dot.style.background = "var(--sm-primary-color)"; dot.style.color = "white"; dot.innerText = i; }
+        else { dot.style.background = "#edf2f7"; dot.style.color = "#718096"; dot.innerText = i; }
+    }
+}
+function smActivateStep2Check() {
+    const nid = document.getElementById("act_national_id").value;
+    const mem = document.getElementById("act_mem_no").value;
+    const branch = document.getElementById("act_branch").value;
+    if(!/^[0-9]{14}$/.test(nid)) return alert("يرجى إدخال رقم قومي صحيح (14 رقم)");
+    const fd = new FormData();
+    fd.append("action", "sm_activate_account_step1");
+    fd.append("national_id", nid);
+    fd.append("membership_number", mem);
+    fd.append("branch", branch);
+    fetch(ajaxurl, {method:"POST", body:fd}).then(r=>r.json()).then(res=>{
+        if(res.success) smActivateGoTo(3);
+        else alert(res.data);
+    });
+}
 function smToggleRegistration() { const m = document.getElementById("sm-registration-modal"); const isClosing = m.style.display !== "none"; m.style.display = isClosing ? "none" : "flex"; if (!isClosing) { smRegNext(1); document.getElementById("sm-membership-request-form").reset(); } }
 document.querySelectorAll(".academic-cascading").forEach((el, idx, arr) => { el.addEventListener("change", function() { if (this.value && idx < arr.length - 1) { arr[idx + 1].disabled = false; } else if (!this.value) { for (let i = idx + 1; i < arr.length; i++) { arr[i].value = ""; arr[i].disabled = true; } } }); });
 function smRegNext(step) {
