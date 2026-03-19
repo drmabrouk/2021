@@ -136,7 +136,14 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                     <label class="sm-label" style="font-size: 12px;">الفرع:</label>
                     <select id="req_branch_filter" class="sm-select" onchange="smApplyAdminRequestFilters()">
                         <option value="all">الكل</option>
-                        <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                        <?php
+                        $db_branches = SM_DB::get_branches_data();
+                        if (!empty($db_branches)) {
+                            foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                        } else {
+                            foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>";
+                        }
+                        ?>
                     </select>
                 </div>
             </div>
@@ -247,7 +254,13 @@ $all_requests = $is_official ? SM_DB::get_service_requests() : [];
                     <select name="branch" class="sm-select">
                         <option value="all">جميع الفروع</option>
                         <option value="hq">المركز الرئيسي</option>
-                        <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                        <?php
+                        if (!empty($db_branches)) {
+                            foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                        } else {
+                            foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>";
+                        }
+                        ?>
                     </select>
                 </div>
             </div>

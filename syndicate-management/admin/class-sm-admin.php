@@ -52,6 +52,15 @@ class SM_Admin {
 
         add_submenu_page(
             'sm-dashboard',
+            'إدارة الفروع',
+            'إدارة الفروع',
+            'sm_full_access',
+            'sm-branches',
+            array($this, 'display_branches_page')
+        );
+
+        add_submenu_page(
+            'sm-dashboard',
             'إعدادات النظام',
             'إعدادات النظام',
             'sm_manage_system',
@@ -87,6 +96,11 @@ class SM_Admin {
 
     public function display_members() {
         $_GET['sm_tab'] = 'members';
+        $this->display_settings();
+    }
+
+    public function display_branches_page() {
+        $_GET['sm_tab'] = 'branches';
         $this->display_settings();
     }
 

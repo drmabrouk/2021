@@ -17,7 +17,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('SM_VERSION', '97.2.3');
+define('SM_VERSION', '98.1.0');
 define('SM_PLUGIN_DIR', plugin_dir_path(__FILE__));
 define('SM_PLUGIN_URL', plugin_dir_url(__FILE__));
 

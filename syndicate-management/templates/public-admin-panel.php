@@ -627,7 +627,7 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
 
                 <?php if (!$is_restricted && ($is_admin || $is_sys_admin || $is_syndicate_admin)): ?>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'branches' ? 'sm-active' : ''; ?>">
-                        <a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'branches']); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-networking"></span> فروع النقابة</a>
+                        <a href="<?php echo add_query_arg(['sm_tab' => 'branches']); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-networking"></span> إدارة فروع النقابة</a>
                     </li>
                     <li class="sm-sidebar-item <?php echo $active_tab == 'finance' ? 'sm-active' : ''; ?>">
                         <a href="<?php echo add_query_arg('sm_tab', 'finance'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-money-alt"></span> المحاسبة والمالية</a>
@@ -652,8 +652,14 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                     <li class="sm-sidebar-item <?php echo $active_tab == 'digital-services' ? 'sm-active' : ''; ?>">
                         <a href="<?php echo add_query_arg('sm_tab', 'digital-services'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-cloud"></span> الخدمات الرقمية</a>
                     </li>
-                    <li class="sm-sidebar-item <?php echo $active_tab == 'surveys' ? 'sm-active' : ''; ?>">
+                    <li class="sm-sidebar-item <?php echo in_array($active_tab, ['surveys', 'test-questions']) ? 'sm-active' : ''; ?>">
                         <a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="sm-sidebar-link"><span class="dashicons dashicons-welcome-learn-more"></span> اختبارات الممارسة المهنية</a>
+                        <?php if($is_admin || $is_sys_admin || $is_syndicate_admin): ?>
+                        <ul class="sm-sidebar-dropdown" style="display: <?php echo in_array($active_tab, ['surveys', 'test-questions']) ? 'block' : 'none'; ?>;">
+                            <li><a href="<?php echo add_query_arg('sm_tab', 'surveys'); ?>" class="<?php echo $active_tab == 'surveys' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-chart-bar"></span> نتائج ومشاركات</a></li>
+                            <li><a href="<?php echo add_query_arg('sm_tab', 'test-questions'); ?>" class="<?php echo $active_tab == 'test-questions' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-admin-settings"></span> بنك الأسئلة والإعدادات</a></li>
+                        </ul>
+                        <?php endif; ?>
                     </li>
                 <?php endif; ?>
 
@@ -676,7 +682,6 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                         <ul class="sm-sidebar-dropdown" style="display: <?php echo $active_tab == 'advanced-settings' ? 'block' : 'none'; ?>;">
                             <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'staff']); ?>" class="<?php echo (!isset($_GET['sub']) || $_GET['sub'] == 'staff') ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-admin-users"></span> مستخدمي النظام</a></li>
                             <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'alerts']); ?>" class="<?php echo ($_GET['sub'] ?? '') == 'alerts' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-megaphone"></span> تنبيهات النظام</a></li>
-                            <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'branches']); ?>" class="<?php echo ($_GET['sub'] ?? '') == 'branches' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-networking"></span> فروع النقابة</a></li>
                             <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'backup']); ?>" class="<?php echo ($_GET['sub'] ?? '') == 'backup' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-database-export"></span> النسخ الاحتياطي</a></li>
                             <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'emails']); ?>" class="<?php echo ($_GET['sub'] ?? '') == 'emails' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-email"></span> إعدادات البريد</a></li>
                             <li><a href="<?php echo add_query_arg(['sm_tab' => 'advanced-settings', 'sub' => 'logs']); ?>" class="<?php echo ($_GET['sub'] ?? '') == 'logs' ? 'sm-sub-active' : ''; ?>"><span class="dashicons dashicons-list-view"></span> سجل النشاطات</a></li>
@@ -792,6 +797,18 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                     }
                     break;
 
+                case 'branches':
+                    if ($is_admin || $is_sys_admin || $is_syndicate_admin) {
+                        include SM_PLUGIN_DIR . 'templates/admin-branches.php';
+                    }
+                    break;
+
+                case 'test-questions':
+                    if ($is_admin || $is_sys_admin || $is_syndicate_admin) {
+                        include SM_PLUGIN_DIR . 'templates/admin-surveys.php';
+                    }
+                    break;
+
                 case 'advanced-settings':
                     if ($is_admin || $is_sys_admin) {
                         $sub = $_GET['sub'] ?? 'staff';
@@ -799,7 +816,6 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                         <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid #eee; overflow-x: auto; white-space: nowrap; padding-bottom: 10px;">
                             <button class="sm-tab-btn <?php echo ($sub == 'alerts') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-alerts-settings', this)">تنبيهات النظام</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'staff') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-users-settings', this)">إدارة مستخدمي النظام</button>
-                            <button id="sm-tab-branches-trigger" class="sm-tab-btn <?php echo ($sub == 'branches') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('syndicate-branches-settings', this)">فروع النقابة</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'backup') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('backup-settings', this)">مركز النسخ الاحتياطي</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'emails') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('system-email-settings', this)">إعدادات البريد</button>
                             <button class="sm-tab-btn <?php echo ($sub == 'logs') ? 'sm-active' : ''; ?>" onclick="smOpenInternalTab('activity-logs', this)">سجل النشاطات</button>
@@ -925,10 +941,6 @@ $greeting = ($hour >= 5 && $hour < 12) ? 'صباح الخير' : 'مساء ال�
                                     </div>
                                 </div>
                             </div>
-                        </div>
-
-                        <div id="syndicate-branches-settings" class="sm-internal-tab" style="display: <?php echo ($sub == 'branches') ? 'block' : 'none'; ?>;">
-                            <?php include SM_PLUGIN_DIR . 'templates/admin-branches.php'; ?>
                         </div>
 
                         <div id="system-email-settings" class="sm-internal-tab" style="display: <?php echo ($sub == 'emails') ? 'block' : 'none'; ?>;">
