@@ -97,7 +97,6 @@ $syndicate = SM_Settings::get_syndicate_info();
                             ?>
                         </select>
                     </div>
-                    <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">النقابة الفرعية / اللجنة النوعية:</label><input name="sub_syndicate" type="text" class="sm-input" placeholder="مثال: نقابة المعلمين بوسط القاهرة"></div>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; margin-top:10px;">
                     <button type="button" onclick="smRegNext(2)" class="sm-btn sm-btn-outline">السابق</button>
@@ -106,7 +105,29 @@ $syndicate = SM_Settings::get_syndicate_info();
             </div>
             <!-- Step 4: Payment Stage -->
             <div id="reg-step-4" class="reg-step" style="display:none;">
-                <div style="text-align:center; padding:40px; border:2px dashed #e2e8f0; border-radius:15px; color:#94a3b8; margin-bottom:20px;"><span class="dashicons dashicons-cart" style="font-size:40px; width:40px; height:40px; margin-bottom:10px;"></span><p>مرحلة السداد الإلكتروني قيد التطوير البرمجي حالياً.</p></div>
+                <div style="background:#fffaf0; border:1px solid #feebc8; padding:20px; border-radius:15px; margin-bottom:20px;">
+                    <h4 style="margin:0 0 10px 0; color:#9c4221; font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px;">
+                        <span class="dashicons dashicons-cart"></span> بيانات سداد رسوم القيد
+                    </h4>
+                    <p style="font-size:13px; color:#744210; margin-bottom:20px;">يرجى سداد رسوم العضوية المقررة عبر أحد الوسائل التالية التابعة لفرع النقابة المختار:</p>
+
+                    <div id="branch-payment-details" style="display:grid; gap:12px;">
+                        <!-- Dynamically populated via JS -->
+                        <div style="text-align:center; padding:20px; color:#94a3b8;">يرجى اختيار الفرع أولاً لرؤية بيانات السداد.</div>
+                    </div>
+                </div>
+
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:20px; border-radius:15px; margin-bottom:20px;">
+                    <div class="sm-form-group" style="margin-bottom:15px;">
+                        <label class="sm-label">رقم عملية التحويل (Reference Number):</label>
+                        <input type="text" name="payment_reference" class="sm-input" placeholder="أدخل رقم العملية أو الإيصال">
+                    </div>
+                    <div class="sm-form-group" style="margin-bottom:0;">
+                        <label class="sm-label">صورة إيصال السداد (اختياري):</label>
+                        <input type="file" name="payment_screenshot" class="sm-input" accept="image/*">
+                    </div>
+                </div>
+
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
                     <button type="button" onclick="smRegNext(3)" class="sm-btn sm-btn-outline">السابق</button>
                     <button type="button" onclick="smRegNext(5)" class="sm-btn">التالي: شحن الوثائق</button>
@@ -188,6 +209,8 @@ $syndicate = SM_Settings::get_syndicate_info();
 </div>
 
 <script>
+const smBranchesData = <?php echo json_encode(SM_DB::get_branches_data()); ?>;
+
 function smTogglePass(id, btn) {
     const input = document.getElementById(id);
     if (input.type === "password") { input.type = "text"; btn.classList.replace("dashicons-visibility", "dashicons-hidden"); }
@@ -231,6 +254,46 @@ function smToggleRegistration() { const m = document.getElementById("sm-registra
 document.querySelectorAll(".academic-cascading").forEach((el, idx, arr) => { el.addEventListener("change", function() { if (this.value && idx < arr.length - 1) { arr[idx + 1].disabled = false; } else if (!this.value) { for (let i = idx + 1; i < arr.length; i++) { arr[i].value = ""; arr[i].disabled = true; } } }); });
 function smRegNext(step) {
     if (step > 1) { const prevStep = step - 1; const prevDiv = document.getElementById("reg-step-" + prevStep); const inputs = prevDiv.querySelectorAll("input[required], select[required]"); for (const input of inputs) { if (!input.value) return alert("يرجى ملء كافة الحقول المطلوبة للمتابعة."); } if (prevStep === 1) { const nid = prevDiv.querySelector("[name=\"national_id\"]").value; if (nid.length !== 14) return alert("الرقم القومي يجب أن يتكون من 14 رقم."); } }
+
+    if (step === 4) {
+        const branchSlug = document.querySelector('[name="governorate"]').value;
+        const branch = smBranchesData.find(b => b.slug === branchSlug);
+        const detailsContainer = document.getElementById('branch-payment-details');
+
+        if (branch) {
+            let html = '';
+            if (branch.bank_name || branch.bank_iban) {
+                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8;">
+                    <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">التحويل البنكي (${branch.bank_name || 'البنك المعتمد'}):</div>
+                    <div style="font-weight:700; font-family:monospace; font-size:14px;">IBAN: ${branch.bank_iban || '---'}</div>
+                </div>`;
+            }
+            if (branch.instapay_id) {
+                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">عبر تطبيق انستا باي (Instapay):</div>
+                        <div style="font-weight:700; font-size:14px;">${branch.instapay_id}</div>
+                    </div>
+                    <span class="dashicons dashicons-smartphone" style="color:#9c4221;"></span>
+                </div>`;
+            }
+            if (branch.digital_wallet) {
+                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">المحفظة الذكية (فودافون كاش / غيرها):</div>
+                        <div style="font-weight:700; font-size:14px;">${branch.digital_wallet}</div>
+                    </div>
+                    <span class="dashicons dashicons-money-alt" style="color:#9c4221;"></span>
+                </div>`;
+            }
+
+            if (!html) {
+                html = '<div style="text-align:center; padding:20px; color:#94a3b8;">يرجى التواصل مع الفرع للحصول على بيانات السداد المعتمدة.</div>';
+            }
+            detailsContainer.innerHTML = html;
+        }
+    }
+
     const titles = ["البيانات الشخصية", "البيانات الأكاديمية", "البيانات المهنية", "مرحلة السداد", "شحن الوثائق"];
     document.getElementById("reg-step-title").innerText = "المرحلة " + (["الأولى", "الثانية", "الثالثة", "الرابعة", "الخامسة"][step-1]) + ": " + titles[step-1];
     document.querySelectorAll(".reg-step").forEach(s => s.style.display = "none");
