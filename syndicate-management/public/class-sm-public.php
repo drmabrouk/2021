@@ -121,52 +121,94 @@ class SM_Public {
                     <span class="dashicons dashicons-networking" style="font-size:30px; width:30px; height:30px; color:var(--sm-primary-color);"></span>
                 </div>
                 <h2 style="margin:0; font-weight:900; font-size:2.5em; color:var(--sm-dark-color);">الفروع واللجان النقابية</h2>
+                <p style="color:#64748b; margin-top:10px;">استكشف فروع النقابة وتواصل مع الإدارة المختصة في منطقتك</p>
                 <div style="max-width:500px; margin:30px auto 0; position:relative;">
                     <input type="text" id="sm_branch_search" placeholder="ابحث عن فرع محدد..." style="width:100%; padding:15px 45px 15px 20px; border-radius:15px; border:1px solid #e2e8f0; font-family:'Rubik',sans-serif; outline:none;" oninput="smFilterBranchesPublic(this.value)">
                     <span class="dashicons dashicons-search" style="position:absolute; right:15px; top:15px; color:#94a3b8;"></span>
                 </div>
             </div>
-            <div id="sm-branches-grid-public" style="display:grid; grid-template-columns:repeat(2, 1fr); gap:30px;">
+            <div id="sm-branches-grid-public" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(350px, 1fr)); gap:30px;">
                 <?php if(empty($branches)): ?>
-                    <p style="grid-column:span 2; text-align:center;">لا توجد فروع مسجلة.</p>
+                    <div style="grid-column:1/-1; text-align:center; padding:50px; background:#fff; border-radius:20px; border:1px dashed #cbd5e0;">
+                        <p style="color:#718096; margin:0;">لا توجد فروع مسجلة حالياً.</p>
+                    </div>
                 <?php else: foreach($branches as $b): ?>
-                    <div class="sm-branch-card-public" data-name="<?php echo esc_attr($b->name); ?>" style="background:#fff; border:1px solid #e2e8f0; border-radius:24px; padding:30px; cursor:pointer;" onclick='smShowBranchDetails(<?php echo json_encode($b); ?>)'>
-                        <div style="display:flex; align-items:center; gap:20px;">
-                            <div style="width:50px; height:50px; background:var(--sm-primary-color); border-radius:15px; display:flex; align-items:center; justify-content:center; color:#fff;">
+                    <div class="sm-branch-card-public" data-name="<?php echo esc_attr($b->name); ?>" style="background:#fff; border:1px solid #e2e8f0; border-radius:24px; padding:30px; box-shadow:0 4px 6px -1px rgba(0,0,0,0.05); transition:0.3s; position:relative; display:flex; flex-direction:column;">
+                        <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+                            <div style="width:50px; height:50px; background:var(--sm-primary-color); border-radius:15px; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0;">
                                 <span class="dashicons dashicons-location"></span>
                             </div>
-                            <div>
-                                <h3 style="margin:0; font-weight:800;"><?php echo esc_html($b->name); ?></h3>
+                            <div style="flex:1;">
+                                <h3 style="margin:0; font-weight:800; color:var(--sm-dark-color); font-size:1.4em;"><?php echo esc_html($b->name); ?></h3>
+                                <div style="font-size:12px; color:#94a3b8; margin-top:4px;">كود الفرع: <?php echo esc_html($b->slug); ?></div>
+                            </div>
+                        </div>
+
+                        <div style="margin-bottom:20px; font-size:14px; color:#64748b; line-height:1.6; min-height:45px;">
+                            <?php echo esc_html(mb_strimwidth($b->address, 0, 100, "...")); ?>
+                        </div>
+
+                        <button onclick="smToggleBranchDetails(this)" class="sm-btn sm-btn-outline" style="width:100%; border-radius:12px; font-weight:700; display:flex; align-items:center; justify-content:center; gap:8px;">
+                            عرض التفاصيل <span class="dashicons dashicons-arrow-down-alt2"></span>
+                        </button>
+
+                        <div class="sm-branch-details-expanded" style="display:none; margin-top:25px; padding-top:25px; border-top:1px solid #f1f5f9; animation: smFadeIn 0.3s ease;">
+                            <div style="display:grid; gap:15px;">
+                                <div style="background:#f8fafc; padding:15px; border-radius:12px;">
+                                    <div style="font-size:11px; color:#94a3b8; margin-bottom:4px;">مدير الفرع</div>
+                                    <div style="font-weight:700; color:var(--sm-dark-color);"><?php echo esc_html($b->manager ?: 'غير محدد'); ?></div>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px; font-size:13px; color:#4a5568;">
+                                    <span class="dashicons dashicons-phone" style="color:var(--sm-primary-color); font-size:18px;"></span>
+                                    <strong>الهاتف:</strong> <?php echo esc_html($b->phone ?: '---'); ?>
+                                </div>
+                                <div style="display:flex; align-items:center; gap:12px; font-size:13px; color:#4a5568;">
+                                    <span class="dashicons dashicons-email" style="color:var(--sm-primary-color); font-size:18px;"></span>
+                                    <strong>البريد:</strong> <?php echo esc_html($b->email ?: '---'); ?>
+                                </div>
+                                <div style="display:flex; align-items:start; gap:12px; font-size:13px; color:#4a5568;">
+                                    <span class="dashicons dashicons-admin-home" style="color:var(--sm-primary-color); font-size:18px;"></span>
+                                    <div><strong>العنوان بالكامل:</strong><br><span style="display:inline-block; margin-top:4px;"><?php echo esc_html($b->address); ?></span></div>
+                                </div>
+                                <?php if($b->description): ?>
+                                    <div style="font-size:12px; color:#718096; font-style:italic; margin-top:10px; border-top:1px dashed #e2e8f0; padding-top:10px;">
+                                        <?php echo nl2br(esc_html($b->description)); ?>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
                 <?php endforeach; endif; ?>
             </div>
         </div>
-        <div id="sm-branch-details-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100000; justify-content:center; align-items:center; padding:20px;">
-            <div style="background:#fff; width:100%; max-width:600px; border-radius:24px; padding:40px; position:relative;">
-                <button onclick="this.parentElement.parentElement.style.display='none'" style="position:absolute; top:20px; left:20px; border:none; background:none; font-size:24px; cursor:pointer;">&times;</button>
-                <div id="sm-branch-details-body"></div>
-            </div>
-        </div>
         <script>
         function smFilterBranchesPublic(val) {
             const cards = document.querySelectorAll('.sm-branch-card-public');
-            cards.forEach(c => { c.style.display = c.dataset.name.includes(val) ? 'block' : 'none'; });
+            const search = val.trim().toLowerCase();
+            cards.forEach(c => {
+                const name = c.dataset.name.toLowerCase();
+                c.style.display = name.includes(search) ? 'flex' : 'none';
+            });
         }
-        function smShowBranchDetails(b) {
-            const body = document.getElementById('sm-branch-details-body');
-            body.innerHTML = `
-                <h2 style="font-weight:900; margin-bottom:20px;">\${b.name}</h2>
-                <div style="display:grid; gap:15px;">
-                    <div style="background:#f8fafc; padding:15px; border-radius:12px;"><strong>مدير الفرع:</strong> \${b.manager || 'غير محدد'}</div>
-                    <div><strong>الهاتف:</strong> \${b.phone}</div>
-                    <div><strong>البريد:</strong> \${b.email}</div>
-                    <div><strong>العنوان:</strong> \${b.address}</div>
-                </div>
-                <button class="sm-btn" style="width:100%; margin-top:30px;" onclick="this.parentElement.parentElement.parentElement.style.display='none'">إغلاق</button>
-            `;
-            document.getElementById('sm-branch-details-modal').style.display = 'flex';
+        function smToggleBranchDetails(btn) {
+            const card = btn.closest('.sm-branch-card-public');
+            const details = card.querySelector('.sm-branch-details-expanded');
+            const isVisible = details.style.display === 'block';
+
+            // Close all others optional? Let's keep it simple first
+
+            details.style.display = isVisible ? 'none' : 'block';
+            btn.innerHTML = isVisible ?
+                'عرض التفاصيل <span class="dashicons dashicons-arrow-down-alt2"></span>' :
+                'إخفاء التفاصيل <span class="dashicons dashicons-arrow-up-alt2"></span>';
+
+            if (!isVisible) {
+                btn.style.background = 'var(--sm-dark-color)';
+                btn.style.color = '#fff';
+            } else {
+                btn.style.background = 'transparent';
+                btn.style.color = 'inherit';
+            }
         }
         </script>
         <?php
@@ -1220,6 +1262,26 @@ class SM_Public {
         foreach ($bs as $b) fputcsv($out, [$b->id, $b->slug, $b->name, $b->phone, $b->email, $b->address]);
         fclose($out);
         exit;
+    }
+
+    public static function ajax_get_test_questions() {
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Unauthorized');
+        }
+        $test_id = intval($_GET['test_id']);
+        // Capability check: admins or the user assigned to the test
+        $can_view = current_user_can('sm_manage_system');
+        if (!$can_view) {
+            global $wpdb;
+            $is_assigned = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}sm_test_assignments WHERE test_id = %d AND user_id = %d", $test_id, get_current_user_id()));
+            if ($is_assigned) $can_view = true;
+        }
+
+        if (!$can_view) {
+            wp_send_json_error('Access denied');
+        }
+
+        wp_send_json_success(SM_DB_Education::get_test_questions($test_id));
     }
 
     public function ajax_verify_suggest() {

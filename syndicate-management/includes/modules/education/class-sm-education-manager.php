@@ -10,15 +10,54 @@ class SM_Education_Manager {
         }
         check_ajax_referer('sm_admin_action', 'nonce');
 
-        $id = SM_DB::add_survey(
-            $_POST['title'],
-            $_POST['questions'],
-            $_POST['recipients'],
-            get_current_user_id(),
-            $_POST['specialty'] ?? '',
-            $_POST['test_type'] ?? 'practice'
-        );
-        wp_send_json_success($id);
+        $id = SM_DB_Education::add_survey($_POST);
+        if ($id) {
+            wp_send_json_success($id);
+        } else {
+            wp_send_json_error('Failed to create test');
+        }
+    }
+
+    public static function ajax_update_survey() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        $id = intval($_POST['id']);
+        if (SM_DB_Education::update_survey($id, $_POST)) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed to update test');
+        }
+    }
+
+    public static function ajax_add_test_question() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        $id = SM_DB_Education::add_question($_POST);
+        if ($id) {
+            wp_send_json_success($id);
+        } else {
+            wp_send_json_error('Failed to add question');
+        }
+    }
+
+    public static function ajax_delete_test_question() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+
+        $id = intval($_POST['id']);
+        if (SM_DB_Education::delete_question($id)) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed to delete question');
+        }
     }
 
     public static function ajax_assign_test() {
@@ -46,11 +85,53 @@ class SM_Education_Manager {
         }
         check_ajax_referer('sm_survey_action', 'nonce');
 
-        SM_DB::save_survey_response(
-            intval($_POST['survey_id']),
-            get_current_user_id(),
-            json_decode(stripslashes($_POST['responses']), true)
+        $sid = intval($_POST['survey_id']);
+        $responses = json_decode(stripslashes($_POST['responses'] ?? '[]'), true);
+        $questions = SM_DB_Education::get_test_questions($sid);
+        $survey = SM_DB_Education::get_survey($sid);
+
+        $score = 0;
+        $total_points = 0;
+
+        if (!empty($questions)) {
+            foreach ($questions as $q) {
+                $total_points += $q->points;
+                $user_ans = $responses[$q->id] ?? '';
+                if (trim((string)$user_ans) === trim((string)$q->correct_answer)) {
+                    $score += $q->points;
+                }
+            }
+        }
+
+        $percent = $total_points > 0 ? ($score / $total_points) * 100 : 0;
+        $passed = ($percent >= $survey->pass_score);
+
+        global $wpdb;
+        $wpdb->insert("{$wpdb->prefix}sm_survey_responses", array(
+            'survey_id' => $sid,
+            'user_id' => get_current_user_id(),
+            'responses' => json_encode($responses),
+            'score' => $percent,
+            'status' => $passed ? 'passed' : 'failed',
+            'created_at' => current_time('mysql')
+        ));
+
+        // Notify member of result
+        $user = wp_get_current_user();
+        $msg = "لقد أكملت اختبار: {$survey->title}\nالنتيجة: " . round($percent) . "%\nالحالة: " . ($passed ? 'ناجح ✅' : 'لم تجتز ❌');
+
+        SM_DB_Communications::send_message(
+            0, // System
+            $user->ID,
+            $msg,
+            null,
+            null,
+            get_user_meta($user->ID, 'sm_governorate', true)
         );
-        wp_send_json_success();
+
+        wp_send_json_success([
+            'score' => $percent,
+            'passed' => $passed
+        ]);
     }
 }

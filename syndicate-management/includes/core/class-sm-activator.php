@@ -107,11 +107,31 @@ class SM_Activator {
             recipients tinytext NOT NULL,
             specialty varchar(100) DEFAULT '',
             test_type varchar(100) DEFAULT 'practice',
+            time_limit int DEFAULT 30,
+            max_attempts int DEFAULT 1,
+            pass_score int DEFAULT 50,
             status enum('active', 'completed', 'cancelled') DEFAULT 'active',
             created_by bigint(20),
             created_at datetime DEFAULT CURRENT_TIMESTAMP NOT NULL,
             PRIMARY KEY  (id),
             KEY created_by (created_by)
+        ) $charset_collate;\n";
+
+        // Structured Test Questions Table
+        $table_name = $wpdb->prefix . 'sm_test_questions';
+        $sql .= "CREATE TABLE $table_name (
+            id mediumint(9) NOT NULL AUTO_INCREMENT,
+            test_id mediumint(9) NOT NULL,
+            question_text text NOT NULL,
+            question_type enum('mcq', 'true_false', 'short_answer') DEFAULT 'mcq',
+            options text,
+            correct_answer text,
+            points int DEFAULT 1,
+            topic varchar(100),
+            difficulty enum('easy', 'medium', 'hard') DEFAULT 'medium',
+            sort_order int DEFAULT 0,
+            PRIMARY KEY  (id),
+            KEY test_id (test_id)
         ) $charset_collate;\n";
 
         // Survey Responses Table
@@ -863,14 +883,19 @@ class SM_Activator {
             return;
         }
 
-        $spec_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'specialty'));
-        if (empty($spec_col)) {
-            $wpdb->query("ALTER TABLE $table_name ADD specialty varchar(100) DEFAULT '' AFTER recipients");
-        }
+        $cols = [
+            'specialty' => "varchar(100) DEFAULT '' AFTER recipients",
+            'test_type' => "varchar(100) DEFAULT 'practice' AFTER specialty",
+            'time_limit' => "int DEFAULT 30 AFTER test_type",
+            'max_attempts' => "int DEFAULT 1 AFTER time_limit",
+            'pass_score' => "int DEFAULT 50 AFTER max_attempts"
+        ];
 
-        $type_col = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", 'test_type'));
-        if (empty($type_col)) {
-            $wpdb->query("ALTER TABLE $table_name ADD test_type varchar(100) DEFAULT 'practice' AFTER specialty");
+        foreach ($cols as $col => $def) {
+            $exists = $wpdb->get_results($wpdb->prepare("SHOW COLUMNS FROM $table_name LIKE %s", $col));
+            if (empty($exists)) {
+                $wpdb->query("ALTER TABLE $table_name ADD $col $def");
+            }
         }
     }
 
