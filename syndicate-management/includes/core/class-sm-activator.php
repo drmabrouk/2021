@@ -448,10 +448,13 @@ class SM_Activator {
             address text,
             manager varchar(255),
             description text,
+            bank_name varchar(100),
+            bank_branch varchar(100),
             bank_iban varchar(50),
             bank_local text,
             digital_wallet varchar(20),
             instapay_id varchar(100),
+            postal_code varchar(20),
             created_at datetime DEFAULT CURRENT_TIMESTAMP,
             PRIMARY KEY  (id),
             UNIQUE KEY slug (slug)
@@ -864,10 +867,13 @@ class SM_Activator {
         if ($wpdb->get_var("SHOW TABLES LIKE '$table_name'") != $table_name) return;
 
         $cols = [
+            'bank_name' => 'varchar(100)',
+            'bank_branch' => 'varchar(100)',
             'bank_iban' => 'varchar(50)',
             'bank_local' => 'text',
             'digital_wallet' => 'varchar(20)',
-            'instapay_id' => 'varchar(100)'
+            'instapay_id' => 'varchar(100)',
+            'postal_code' => 'varchar(20)'
         ];
 
         foreach ($cols as $col => $type) {

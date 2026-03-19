@@ -105,26 +105,27 @@ $syndicate = SM_Settings::get_syndicate_info();
             </div>
             <!-- Step 4: Payment Stage -->
             <div id="reg-step-4" class="reg-step" style="display:none;">
-                <div style="background:#fffaf0; border:1px solid #feebc8; padding:20px; border-radius:15px; margin-bottom:20px;">
-                    <h4 style="margin:0 0 10px 0; color:#9c4221; font-weight:800; font-size:15px; display:flex; align-items:center; gap:8px;">
+                <div style="background:#fffaf0; border:1px solid #feebc8; padding:15px; border-radius:15px; margin-bottom:15px;">
+                    <h4 style="margin:0 0 8px 0; color:#9c4221; font-weight:800; font-size:14px; display:flex; align-items:center; gap:8px;">
                         <span class="dashicons dashicons-cart"></span> بيانات سداد رسوم القيد
                     </h4>
-                    <p style="font-size:13px; color:#744210; margin-bottom:20px;">يرجى سداد رسوم العضوية المقررة عبر أحد الوسائل التالية التابعة لفرع النقابة المختار:</p>
+                    <p style="font-size:12px; color:#744210; margin-bottom:12px;">يرجى سداد رسوم العضوية المقررة عبر أحد الوسائل التالية التابعة للفرع:</p>
 
-                    <div id="branch-payment-details" style="display:grid; gap:12px;">
-                        <!-- Dynamically populated via JS -->
-                        <div style="text-align:center; padding:20px; color:#94a3b8;">يرجى اختيار الفرع أولاً لرؤية بيانات السداد.</div>
+                    <div id="branch-payment-details" style="display:grid; gap:10px;">
+                        <div style="text-align:center; padding:10px; color:#94a3b8; font-size:12px;">يرجى اختيار الفرع أولاً لرؤية بيانات السداد.</div>
                     </div>
                 </div>
 
-                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:20px; border-radius:15px; margin-bottom:20px;">
-                    <div class="sm-form-group" style="margin-bottom:15px;">
-                        <label class="sm-label">رقم عملية التحويل (Reference Number):</label>
-                        <input type="text" name="payment_reference" class="sm-input" placeholder="أدخل رقم العملية أو الإيصال">
-                    </div>
-                    <div class="sm-form-group" style="margin-bottom:0;">
-                        <label class="sm-label">صورة إيصال السداد (اختياري):</label>
-                        <input type="file" name="payment_screenshot" class="sm-input" accept="image/*">
+                <div style="background:#f8fafc; border:1px solid #e2e8f0; padding:15px; border-radius:15px; margin-bottom:15px;">
+                    <div style="display:grid; grid-template-columns:1fr 1fr; gap:15px;">
+                        <div class="sm-form-group">
+                            <label class="sm-label" style="font-size:12px; margin-bottom:5px;">رقم عملية التحويل:</label>
+                            <input type="text" name="payment_reference" class="sm-input" placeholder="رقم العملية أو الإيصال" style="height:38px; font-size:13px;">
+                        </div>
+                        <div class="sm-form-group">
+                            <label class="sm-label" style="font-size:12px; margin-bottom:5px;">صورة الإيصال (اختياري):</label>
+                            <input type="file" name="payment_screenshot" class="sm-input" accept="image/*" style="height:38px; font-size:12px; padding:5px;">
+                        </div>
                     </div>
                 </div>
 
@@ -135,13 +136,15 @@ $syndicate = SM_Settings::get_syndicate_info();
             </div>
             <!-- Step 5: Document Submission -->
             <div id="reg-step-5" class="reg-step" style="display:none;">
-                <div style="background: #fff5f5; padding: 25px; border-radius: 15px; border: 1px solid #feb2b2; margin-bottom: 25px;"><h4 style="margin: 0 0 10px 0; color: #c53030; font-weight: 800;">تعليمات إرسال الأصول الورقية</h4><p style="font-size: 13px; color: #7b2c2c; line-height: 1.6; margin: 0;">لإتمام عملية القيد، يتوجب عليك شحن أصول المستندات (المؤهل، فيش جنائي، صور شخصية، إلخ) عبر خدمة شحن معتمدة إلى المقر الرئيسي للنقابة.</p></div>
-                <div style="background: #f8fafc; padding: 20px; border-radius: 15px; border: 1px solid #e2e8f0; margin-bottom: 25px;">
-                    <div style="margin-bottom: 10px;"><strong>العنوان:</strong> <?php echo esc_html($syndicate['address']); ?></div>
-                    <div style="margin-bottom: 10px;"><strong>رقم الهاتف:</strong> <?php echo esc_html($syndicate['phone']); ?></div>
-                    <?php if (!empty($syndicate['postal_code'])): ?><div style="margin-bottom: 10px;"><strong>الرمز البريدي:</strong> <?php echo esc_html($syndicate['postal_code']); ?></div><?php endif; ?>
+                <div style="background: #fff5f5; padding: 15px; border-radius: 12px; border: 1px solid #feb2b2; margin-bottom: 15px;">
+                    <h4 style="margin: 0 0 5px 0; color: #c53030; font-weight: 800; font-size:14px;">تعليمات إرسال الأصول الورقية</h4>
+                    <p style="font-size: 12px; color: #7b2c2c; line-height: 1.5; margin: 0;">لإتمام عملية القيد، يتوجب عليك شحن أصول المستندات (المؤهل، فيش جنائي، صور شخصية، إلخ) عبر خدمة شحن معتمدة إلى مقر الفرع الموضح أدناه:</p>
                 </div>
-                <div style="background: #fffaf0; padding: 15px; border-radius: 10px; border: 1px solid #feebc8; font-size: 12px; color: #9c4221; line-height: 1.6; margin-bottom: 25px;">بمجرد إرسال طلبك، سيتم تزويدك بكود تتبع إلكتروني لمتابعة حالة طلبك.</div>
+                <div id="branch-shipping-details" style="background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 15px;">
+                    <!-- Dynamically populated -->
+                    <div style="text-align:center; padding:10px; color:#94a3b8; font-size:12px;">يرجى اختيار الفرع أولاً لرؤية عنوان الشحن.</div>
+                </div>
+                <div style="background: #fffaf0; padding: 12px; border-radius: 10px; border: 1px solid #feebc8; font-size: 11px; color: #9c4221; line-height: 1.5; margin-bottom: 20px;">بمجرد إرسال طلبك، سيتم تزويدك بكود تتبع إلكتروني لمتابعة حالة طلبك.</div>
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
                     <button type="button" onclick="smRegNext(4)" class="sm-btn sm-btn-outline">السابق</button>
                     <button type="submit" class="sm-btn" style="background:var(--sm-dark-color);">إرسال الطلب النهائي</button>
@@ -255,42 +258,58 @@ document.querySelectorAll(".academic-cascading").forEach((el, idx, arr) => { el.
 function smRegNext(step) {
     if (step > 1) { const prevStep = step - 1; const prevDiv = document.getElementById("reg-step-" + prevStep); const inputs = prevDiv.querySelectorAll("input[required], select[required]"); for (const input of inputs) { if (!input.value) return alert("يرجى ملء كافة الحقول المطلوبة للمتابعة."); } if (prevStep === 1) { const nid = prevDiv.querySelector("[name=\"national_id\"]").value; if (nid.length !== 14) return alert("الرقم القومي يجب أن يتكون من 14 رقم."); } }
 
-    if (step === 4) {
+    if (step === 4 || step === 5) {
         const branchSlug = document.querySelector('[name="governorate"]').value;
         const branch = smBranchesData.find(b => b.slug === branchSlug);
-        const detailsContainer = document.getElementById('branch-payment-details');
 
-        if (branch) {
-            let html = '';
-            if (branch.bank_name || branch.bank_iban) {
-                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8;">
-                    <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">التحويل البنكي (${branch.bank_name || 'البنك المعتمد'}):</div>
-                    <div style="font-weight:700; font-family:monospace; font-size:14px;">IBAN: ${branch.bank_iban || '---'}</div>
-                </div>`;
-            }
-            if (branch.instapay_id) {
-                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">عبر تطبيق انستا باي (Instapay):</div>
-                        <div style="font-weight:700; font-size:14px;">${branch.instapay_id}</div>
-                    </div>
-                    <span class="dashicons dashicons-smartphone" style="color:#9c4221;"></span>
-                </div>`;
-            }
-            if (branch.digital_wallet) {
-                html += `<div style="background:#fff; padding:12px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <div style="font-size:11px; color:#9c4221; margin-bottom:4px;">المحفظة الذكية (فودافون كاش / غيرها):</div>
-                        <div style="font-weight:700; font-size:14px;">${branch.digital_wallet}</div>
-                    </div>
-                    <span class="dashicons dashicons-money-alt" style="color:#9c4221;"></span>
-                </div>`;
-            }
+        if (step === 4) {
+            const detailsContainer = document.getElementById('branch-payment-details');
+            if (branch) {
+                let html = '';
+                if (branch.bank_name || branch.bank_iban) {
+                    html += `<div style="background:#fff; padding:10px; border-radius:10px; border:1px solid #feebc8;">
+                        <div style="font-size:10px; color:#9c4221; margin-bottom:4px;">التحويل البنكي: <strong>${branch.bank_name || 'البنك المعتمد'}</strong> ${branch.bank_branch ? '('+branch.bank_branch+')' : ''}</div>
+                        <div style="font-weight:700; font-family:monospace; font-size:13px; color:var(--sm-dark-color);">IBAN: ${branch.bank_iban || '---'}</div>
+                    </div>`;
+                }
+                if (branch.instapay_id) {
+                    html += `<div style="background:#fff; padding:10px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:10px; color:#9c4221; margin-bottom:2px;">انستا باي (Instapay):</div>
+                            <div style="font-weight:700; font-size:13px;">${branch.instapay_id}</div>
+                        </div>
+                        <span class="dashicons dashicons-smartphone" style="color:#9c4221; font-size:16px;"></span>
+                    </div>`;
+                }
+                if (branch.digital_wallet) {
+                    html += `<div style="background:#fff; padding:10px; border-radius:10px; border:1px solid #feebc8; display:flex; justify-content:space-between; align-items:center;">
+                        <div>
+                            <div style="font-size:10px; color:#9c4221; margin-bottom:2px;">المحفظة الذكية:</div>
+                            <div style="font-weight:700; font-size:13px;">${branch.digital_wallet}</div>
+                        </div>
+                        <span class="dashicons dashicons-money-alt" style="color:#9c4221; font-size:16px;"></span>
+                    </div>`;
+                }
 
-            if (!html) {
-                html = '<div style="text-align:center; padding:20px; color:#94a3b8;">يرجى التواصل مع الفرع للحصول على بيانات السداد المعتمدة.</div>';
+                if (!html) {
+                    html = '<div style="text-align:center; padding:15px; color:#94a3b8; font-size:12px;">يرجى التواصل مع الفرع للحصول على بيانات السداد المعتمدة.</div>';
+                }
+                detailsContainer.innerHTML = html;
             }
-            detailsContainer.innerHTML = html;
+        }
+
+        if (step === 5) {
+            const shippingContainer = document.getElementById('branch-shipping-details');
+            if (branch) {
+                shippingContainer.innerHTML = `
+                    <div style="margin-bottom: 8px; font-size:13px;"><strong>الفرع:</strong> ${branch.name}</div>
+                    <div style="margin-bottom: 8px; font-size:13px;"><strong>العنوان:</strong> ${branch.address || 'مقر الفرع المعتمد'}</div>
+                    <div style="margin-bottom: 8px; font-size:13px;"><strong>رقم التواصل:</strong> ${branch.phone || '---'}</div>
+                    <div style="margin-bottom: 0; font-size:13px;"><strong>الرمز البريدي:</strong> ${branch.postal_code || '---'}</div>
+                `;
+            } else {
+                shippingContainer.innerHTML = `<div style="text-align:center; color:#e53e3e; font-size:12px;">يرجى اختيار الفرع في الخطوة السابقة أولاً.</div>`;
+            }
         }
     }
 

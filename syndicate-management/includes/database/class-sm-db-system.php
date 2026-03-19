@@ -257,10 +257,13 @@ class SM_DB_System {
             'address' => sanitize_text_field($data['address']),
             'manager' => sanitize_text_field($data['manager']),
             'description' => sanitize_textarea_field($data['description']),
+            'bank_name' => sanitize_text_field($data['bank_name'] ?? ''),
+            'bank_branch' => sanitize_text_field($data['bank_branch'] ?? ''),
             'bank_iban' => sanitize_text_field($data['bank_iban'] ?? ''),
             'bank_local' => sanitize_text_field($data['bank_local'] ?? ''),
             'digital_wallet' => sanitize_text_field($data['digital_wallet'] ?? ''),
-            'instapay_id' => sanitize_text_field($data['instapay_id'] ?? '')
+            'instapay_id' => sanitize_text_field($data['instapay_id'] ?? ''),
+            'postal_code' => sanitize_text_field($data['postal_code'] ?? '')
         ];
 
         if (!empty($data['id'])) {

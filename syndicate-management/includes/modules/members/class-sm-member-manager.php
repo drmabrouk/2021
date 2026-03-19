@@ -497,7 +497,7 @@ class SM_Member_Manager {
         if (!current_user_can('sm_print_reports')) {
             wp_die('Unauthorized');
         }
-        $type = sanitize_text_field($_GET['print_type'] ?? '');
+        $type = sanitize_text_field($_GET['type'] ?? ($_GET['print_type'] ?? ''));
         $mid = intval($_GET['member_id'] ?? 0);
         if ($mid && !self::can_access_member($mid)) {
             wp_die('Access denied');
@@ -509,9 +509,59 @@ class SM_Member_Manager {
             case 'credentials':
                 include SM_PLUGIN_DIR . 'templates/print-member-credentials.php';
                 break;
+            case 'membership_form':
+                include SM_PLUGIN_DIR . 'templates/print-membership-form.php';
+                break;
             default:
-                wp_die('Invalid print type');
+                wp_die('Invalid print type: ' . esc_html($type));
         }
         exit;
+    }
+
+    public static function ajax_submit_professional_request() {
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_professional_action', 'nonce');
+        $mid = intval($_POST['member_id']);
+        if (!self::can_access_member($mid)) {
+            wp_send_json_error('Access denied');
+        }
+        if (SM_DB::add_professional_request($mid, sanitize_text_field($_POST['request_type']))) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed');
+        }
+    }
+
+    public static function ajax_process_professional_request() {
+        if (!current_user_can('sm_manage_members')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        if (SM_DB::process_professional_request(intval($_POST['request_id']), sanitize_text_field($_POST['status']), sanitize_textarea_field($_POST['notes'] ?? ''))) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed');
+        }
+    }
+
+    public static function ajax_track_membership_request() {
+        global $wpdb;
+        $req = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_membership_requests WHERE national_id = %s", sanitize_text_field($_POST['national_id'])));
+        if (!$req) {
+            wp_send_json_error('Not found');
+        }
+        $map = [
+            'Pending Payment Verification' => 'قيد مراجعة الدفع',
+            'approved' => 'تم القبول',
+            'rejected' => 'مرفوض',
+            'pending' => 'قيد المراجعة'
+        ];
+        wp_send_json_success([
+            'status' => $map[$req->status] ?? $req->status,
+            'current_stage' => $req->current_stage,
+            'rejection_reason' => $req->notes ?? ''
+        ]);
     }
 }

@@ -145,4 +145,60 @@ class SM_Education_Manager {
             'passed' => $passed
         ]);
     }
+
+    public static function ajax_cancel_survey() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        global $wpdb;
+        $wpdb->update("{$wpdb->prefix}sm_surveys", ['status' => 'cancelled'], ['id' => intval($_POST['id'])]);
+        wp_send_json_success();
+    }
+
+    public static function ajax_get_survey_results() {
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Unauthorized');
+        }
+        wp_send_json_success(SM_DB::get_survey_results(intval($_GET['id'])));
+    }
+
+    public static function ajax_export_survey_results() {
+        if (!current_user_can('manage_options')) {
+            wp_die('Unauthorized');
+        }
+        $id = intval($_GET['id']);
+        $results = SM_DB::get_survey_results($id);
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="survey-'.$id.'.csv"');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['Question', 'Answer', 'Count']);
+        foreach ($results as $r) {
+            foreach ($r['answers'] as $ans => $count) {
+                fputcsv($out, [$r['question'], $ans, $count]);
+            }
+        }
+        fclose($out);
+        exit;
+    }
+
+    public static function ajax_get_test_questions() {
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Unauthorized');
+        }
+        $test_id = intval($_GET['test_id']);
+        // Capability check: admins or the user assigned to the test
+        $can_view = current_user_can('sm_manage_system');
+        if (!$can_view) {
+            global $wpdb;
+            $is_assigned = $wpdb->get_var($wpdb->prepare("SELECT id FROM {$wpdb->prefix}sm_test_assignments WHERE test_id = %d AND user_id = %d", $test_id, get_current_user_id()));
+            if ($is_assigned) $can_view = true;
+        }
+
+        if (!$can_view) {
+            wp_send_json_error('Access denied');
+        }
+
+        wp_send_json_success(SM_DB_Education::get_test_questions($test_id));
+    }
 }

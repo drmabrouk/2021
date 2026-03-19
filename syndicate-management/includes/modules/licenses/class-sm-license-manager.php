@@ -95,6 +95,8 @@ class SM_License_Manager {
                     'name' => $member->name,
                     'number' => $member->membership_number,
                     'status' => $member->membership_status,
+                    'specialization' => $member->specialization ?: 'غير محدد',
+                    'grade' => $member->professional_grade ?: 'غير محدد',
                     'expiry' => $member->membership_expiration_date
                 ];
             }
@@ -104,6 +106,7 @@ class SM_License_Manager {
                     'facility_name' => $member->facility_name,
                     'number' => $member->facility_number,
                     'category' => $member->facility_category,
+                    'address' => $member->facility_address ?: 'غير محدد',
                     'expiry' => $member->facility_license_expiration_date
                 ];
             }
@@ -112,6 +115,7 @@ class SM_License_Manager {
                     'label' => 'تصريح مزاولة المهنة',
                     'name' => $member->name,
                     'number' => $member->license_number,
+                    'issue_date' => $member->license_issue_date ?: 'غير محدد',
                     'expiry' => $member->license_expiration_date
                 ];
             }
@@ -145,5 +149,21 @@ class SM_License_Manager {
         }
         include SM_PLUGIN_DIR . 'templates/print-facility-license.php';
         exit;
+    }
+
+    public static function ajax_verify_suggest() {
+        global $wpdb;
+        $q = sanitize_text_field($_GET['query'] ?? '');
+        if (strlen($q) < 3) {
+            wp_send_json_success([]);
+        }
+        $s = '%' . $wpdb->esc_like($q) . '%';
+        $res = $wpdb->get_results($wpdb->prepare("SELECT name, national_id FROM {$wpdb->prefix}sm_members WHERE name LIKE %s OR national_id LIKE %s LIMIT 5", $s, $s));
+        $sug = [];
+        foreach ($res as $r) {
+            $sug[] = $r->name;
+            $sug[] = $r->national_id;
+        }
+        wp_send_json_success(array_values(array_unique(array_filter($sug))));
     }
 }
