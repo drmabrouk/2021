@@ -23,7 +23,7 @@ class SM_Auth {
         ?>
         <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background: #f8fafc;">
             <div class="sm-login-box" style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #f1f5f9;" dir="rtl">
-                <div style="background: #f1f5f9; padding: 30px 25px; text-align: center; color: var(--sm-dark-color); position: relative; border-bottom: 1px solid #e2e8f0;">
+                <div style="background: #e2e8f0; padding: 30px 25px; text-align: center; color: var(--sm-dark-color); position: relative; border-bottom: 1px solid #cbd5e0;">
                     <?php if (!empty($syndicate['syndicate_logo'])): ?>
                         <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" style="max-height: 60px; margin-bottom: 15px; display: inline-block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                     <?php endif; ?>
@@ -74,8 +74,8 @@ class SM_Auth {
                     echo $form;
                     ?>
                     <div class="sm-login-footer-links">
-                        <a href="javascript:void(0)" onclick="smToggleRegistration()" class="sm-footer-btn sm-footer-btn-primary"><b>تسجيل</b></a>
-                        <a href="javascript:void(0)" onclick="smToggleActivation()" class="sm-footer-btn"><b>تسجيل دخول</b></a>
+                        <a href="javascript:void(0)" onclick="smToggleRegistration()" class="sm-footer-btn sm-footer-btn-primary"><b>عضوية جديدة</b></a>
+                        <a href="javascript:void(0)" onclick="smToggleActivation()" class="sm-footer-btn"><b>تفعيل الحساب</b></a>
                         <a href="javascript:void(0)" onclick="smToggleRecovery()" style="grid-column: span 2; color: #64748b; font-size: 12px; text-decoration: none; text-align: center; margin-top: 10px;">نسيت كلمة المرور؟</a>
                     </div>
                 </div>
