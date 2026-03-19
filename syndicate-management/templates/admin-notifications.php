@@ -42,7 +42,6 @@ $templates = [
 
     <div class="sm-tabs-wrapper" style="display: flex; gap: 10px; margin-bottom: 25px; border-bottom: 2px solid #eee; padding-bottom: 10px;">
         <button class="sm-tab-btn sm-active" onclick="smOpenSubTab('email-templates', this)">قوالب البريد</button>
-        <button class="sm-tab-btn" onclick="smOpenSubTab('email-design', this)">تصميم الرسائل</button>
         <button class="sm-tab-btn" onclick="smOpenSubTab('email-logs', this)">سجل الرسائل المرسلة</button>
     </div>
 
@@ -113,42 +112,6 @@ $templates = [
                 </form>
             </div>
         </div>
-    </div>
-
-    <!-- SubTab: Design -->
-    <div id="email-design" class="sm-sub-tab" style="display: none;">
-        <form method="post" style="max-width: 800px; background: #fff; padding: 30px; border-radius: 12px; border: 1px solid #e2e8f0;">
-            <?php wp_nonce_field('sm_admin_action', 'sm_admin_nonce'); ?>
-            <h4 style="margin-top: 0; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px;">تخصيص مظهر رسائل البريد الإلكتروني</h4>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-                <div class="sm-form-group">
-                    <label class="sm-label">لون خلفية الهيدر:</label>
-                    <input type="color" name="header_bg" value="<?php echo esc_attr($design['header_bg']); ?>" class="sm-input" style="height: 45px;">
-                </div>
-                <div class="sm-form-group">
-                    <label class="sm-label">لون نص الهيدر:</label>
-                    <input type="color" name="header_text" value="<?php echo esc_attr($design['header_text']); ?>" class="sm-input" style="height: 45px;">
-                </div>
-                <div class="sm-form-group">
-                    <label class="sm-label">لون الخط المميز (Accent):</label>
-                    <input type="color" name="accent_color" value="<?php echo esc_attr($design['accent_color']); ?>" class="sm-input" style="height: 45px;">
-                </div>
-                <div class="sm-form-group">
-                    <label class="sm-label">لون نص الفوتر:</label>
-                    <input type="color" name="footer_text" value="<?php echo esc_attr($design['footer_text']); ?>" class="sm-input" style="height: 45px;">
-                </div>
-            </div>
-
-            <div style="margin-top: 20px; background: #f1f5f9; padding: 20px; border-radius: 8px;">
-                <p style="font-size: 12px; margin: 0; color: #475569;">
-                    * يتم استخدام شعار النقابة المرفوع في "تهيئة النظام" تلقائياً في أعلى الرسائل.
-                    <br>* التصميم الحالي يدعم العرض المتجاوب على كافة الأجهزة (Responsive Design).
-                </p>
-            </div>
-
-            <button type="submit" name="sm_save_notification_design" class="sm-btn" style="width: auto; margin-top: 25px; padding: 12px 40px;">حفظ إعدادات المظهر</button>
-        </form>
     </div>
 
     <!-- SubTab: Logs -->

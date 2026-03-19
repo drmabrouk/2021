@@ -153,7 +153,7 @@
                             <td style="font-family: 'Rubik', sans-serif; font-weight: 700; color: var(--sm-primary-color);"><?php echo esc_html(get_user_meta($u->ID, 'sm_syndicateMemberIdAttr', true) ?: $u->user_login); ?></td>
                             <td style="font-weight: 800; color: var(--sm-dark-color);"><?php echo esc_html($u->display_name); ?></td>
                             <td><span class="sm-badge sm-badge-low"><?php echo $role_labels[$role_slug] ?? $role_slug; ?></span></td>
-                            <td><?php echo SM_Settings::get_governorates()[get_user_meta($u->ID, 'sm_governorate', true)] ?? 'غير محدد'; ?></td>
+                            <td><?php echo esc_html(SM_Settings::get_branch_name(get_user_meta($u->ID, 'sm_governorate', true))); ?></td>
                             <td dir="ltr" style="text-align: right;"><?php echo esc_html(get_user_meta($u->ID, 'sm_phone', true)); ?></td>
                             <td><?php echo esc_html($u->user_email); ?></td>
                             <td>
@@ -235,7 +235,7 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">تغيير الدور:</label>
-                        <select name="role" id="edit_off_role" class="sm-select">
+                        <select name="role" id="edit_off_role" class="sm-select" onchange="smToggleRankField(this, 'edit_off_rank_group')">
                             <?php
                             global $wp_roles;
                             foreach($wp_roles->roles as $role_key => $role_data): ?>
@@ -243,7 +243,7 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="sm-form-group">
+                    <div class="sm-form-group" id="edit_off_rank_group">
                         <label class="sm-label">الرتبة / الدرجة المهنية:</label>
                         <select name="rank" id="edit_off_rank" class="sm-select">
                             <option value="">-- اختر الرتبة --</option>
@@ -252,10 +252,20 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الفرع:</label>
-                        <select name="governorate" id="edit_off_gov" class="sm-select">
+                        <select name="governorate" id="edit_off_gov" class="sm-select" <?php if (!$is_sys_manager && $is_syndicate_admin) echo 'disabled'; ?>>
                             <option value="">-- اختر الفرع --</option>
-                            <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            <?php
+                                $db_branches = SM_DB::get_branches_data();
+                                if (!empty($db_branches)) {
+                                    foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                                } else {
+                                    foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                                }
+                            ?>
                         </select>
+                        <?php if (!$is_sys_manager && $is_syndicate_admin): ?>
+                            <input type="hidden" name="governorate" value="<?php echo esc_attr($my_gov); ?>">
+                        <?php endif; ?>
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الرقم القومي:</label>
@@ -297,7 +307,7 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">اختيار الدور:</label>
-                        <select name="role" class="sm-select">
+                        <select name="role" id="add_off_role" class="sm-select" onchange="smToggleRankField(this, 'add_off_rank_group')">
                             <?php
                             global $wp_roles;
                             foreach($wp_roles->roles as $role_key => $role_data): ?>
@@ -305,7 +315,7 @@
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="sm-form-group">
+                    <div class="sm-form-group" id="add_off_rank_group">
                         <label class="sm-label">الرتبة / الدرجة المهنية:</label>
                         <select name="rank" class="sm-select">
                             <option value="">-- اختر الرتبة --</option>
@@ -314,10 +324,26 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الفرع:</label>
-                        <select name="governorate" class="sm-select">
+                        <select name="governorate" class="sm-select" <?php if (!$is_sys_manager && $is_syndicate_admin) echo 'disabled'; ?>>
                             <option value="">-- اختر الفرع --</option>
-                            <?php foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            <?php
+                                $db_branches = SM_DB::get_branches_data();
+                                if (!empty($db_branches)) {
+                                    foreach($db_branches as $db) {
+                                        $sel = (!$is_sys_manager && $is_syndicate_admin && $db->slug === $my_gov) ? 'selected' : '';
+                                        echo "<option value='".esc_attr($db->slug)."' $sel>".esc_html($db->name)."</option>";
+                                    }
+                                } else {
+                                    foreach (SM_Settings::get_governorates() as $k => $v) {
+                                        $sel = (!$is_sys_manager && $is_syndicate_admin && $k === $my_gov) ? 'selected' : '';
+                                        echo "<option value='$k' $sel>$v</option>";
+                                    }
+                                }
+                            ?>
                         </select>
+                        <?php if (!$is_sys_manager && $is_syndicate_admin): ?>
+                            <input type="hidden" name="governorate" value="<?php echo esc_attr($my_gov); ?>">
+                        <?php endif; ?>
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">رقم الهاتف:</label>
@@ -342,6 +368,32 @@
     </div>
 
     <script>
+    window.smToggleRankField = function(roleSelect, groupId) {
+        const group = document.getElementById(groupId);
+        if (!group) return;
+        // Only sm_syndicate_member (and potentially sm_member) should have professional grades
+        if (roleSelect.value === 'sm_syndicate_member' || roleSelect.value === 'sm_member') {
+            group.style.display = 'block';
+        } else {
+            group.style.display = 'none';
+            const select = group.querySelector('select');
+            if (select) select.value = '';
+        }
+    };
+
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.sm-actions-trigger');
+        if (trigger) {
+            const content = trigger.nextElementSibling;
+            const isVisible = content.style.display === 'block';
+            document.querySelectorAll('.sm-actions-content').forEach(c => c.style.display = 'none');
+            content.style.display = isVisible ? 'none' : 'block';
+            e.stopPropagation();
+        } else {
+            document.querySelectorAll('.sm-actions-content').forEach(c => c.style.display = 'none');
+        }
+    });
+
     function toggleAllUsers(master) {
         document.querySelectorAll('.user-cb').forEach(cb => cb.checked = master.checked);
     }
@@ -398,8 +450,15 @@
             document.getElementById('edit_off_status').value = u.status || 'active';
             document.getElementById('edit_off_role').value = u.role;
             document.getElementById('edit_off_rank').value = u.rank || '';
-            document.getElementById('edit_off_gov').value = u.governorate || '';
             document.getElementById('edit_off_nid').value = u.national_id || '';
+
+            smToggleRankField(document.getElementById('edit_off_role'), 'edit_off_rank_group');
+
+            const govField = document.getElementById('edit_off_gov');
+            if (govField) {
+                govField.value = u.governorate || '';
+            }
+
             document.getElementById('edit-staff-modal').style.display = 'flex';
         };
 

@@ -29,13 +29,17 @@ class SM_Settings {
             'tab_members' => 'إدارة الأعضاء',
             'tab_finance' => 'الاستحقاقات المالية',
             'tab_financial_logs' => 'سجل العمليات المالية',
-            'tab_practice_licenses' => 'تصاريح المزاولة (Permits)',
+            'tab_practice_licenses' => 'تصاريح المزاولة',
             'tab_facility_licenses' => 'تسجيل المنشآت',
             'tab_staffs' => 'إدارة مستخدمي النظام',
             'tab_surveys' => 'اختبارات الممارسة المهنية',
             'tab_global_settings' => 'إعدادات النظام',
             'tab_update_requests' => 'طلبات التحديث',
             'tab_my_profile' => 'ملفي الشخصي',
+            'tab_branches' => 'إدارة فروع النقابة',
+            'tab_issue_document' => 'إصدار المستندات',
+            'tab_digital_services' => 'الخدمات الرقمية',
+            'tab_global_archive' => 'الأرشيف الرقمي العام',
             'field_specialty' => 'التخصص المهني',
             'field_grade' => 'الدرجة الوظيفية',
             'field_rank' => 'الرتبة النقابية'
@@ -310,6 +314,21 @@ class SM_Settings {
         return get_option('sm_branches', $default);
     }
 
+    private static $branches_cache = null;
+    public static function get_branch_name($slug) {
+        if (empty($slug)) return '---';
+        if (self::$branches_cache === null) {
+            self::$branches_cache = SM_DB::get_branches_data();
+        }
+        if (!empty(self::$branches_cache)) {
+            foreach (self::$branches_cache as $db) {
+                if ($db->slug === $slug) return $db->name;
+            }
+        }
+        $govs = self::get_governorates();
+        return $govs[$slug] ?? $slug;
+    }
+
     public static function get_governorate_prefix($gov_key) {
         $prefixes = array(
             'cairo' => 'CAI',
@@ -353,7 +372,10 @@ class SM_Settings {
             'license_penalty' => 500,
             'facility_a' => 9000,
             'facility_b' => 6000,
-            'facility_c' => 3000
+            'facility_c' => 3000,
+            'card_print_fee' => 150,
+            'admin_service_fee' => 50,
+            'test_entry_fee' => 200
         );
         return get_option('sm_finance_settings', $default);
     }
