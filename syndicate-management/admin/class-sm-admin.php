@@ -145,7 +145,6 @@ class SM_Admin {
             !isset($_POST['sm_save_settings_unified']) &&
             !isset($_POST['sm_save_appearance']) &&
             !isset($_POST['sm_save_finance_settings']) &&
-            !isset($_POST['sm_save_professional_options']) &&
             !isset($_POST['sm_save_academic_options'])) {
             return;
         }
@@ -219,6 +218,7 @@ class SM_Admin {
 
         if (isset($_POST['sm_save_academic_options'])) {
             $fields = [
+                'professional_grades' => 'save_professional_grades',
                 'universities' => 'save_universities',
                 'faculties' => 'save_faculties',
                 'departments' => 'save_departments',

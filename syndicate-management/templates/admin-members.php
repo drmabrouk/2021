@@ -192,29 +192,69 @@ if ($import_results) {
             <div class="sm-modal-header"><h3>تسجيل عضو جديد</h3><button class="sm-modal-close" onclick="document.getElementById('add-single-member-modal').style.display='none'">&times;</button></div>
             <form id="add-member-form">
                 <?php wp_nonce_field('sm_add_member', 'sm_nonce'); ?>
-                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; padding:20px;">
-                    <div class="sm-form-group"><label class="sm-label">الرقم القومي:</label><input name="national_id" type="text" class="sm-input" required maxlength="14"></div>
-                    <div class="sm-form-group"><label class="sm-label">الاسم الكامل:</label><input name="name" type="text" class="sm-input" required></div>
-                    <div class="sm-form-group"><label class="sm-label">الدرجة الوظيفية:</label><select name="professional_grade" class="sm-select"><?php foreach (SM_Settings::get_professional_grades() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                <div style="padding:20px;">
+                    <div style="display: grid; grid-template-columns: 2fr 1.2fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="sm-form-group"><input name="name" type="text" class="sm-input" required placeholder="الاسم كما في الهوية الوطنية"></div>
+                        <div class="sm-form-group"><input name="national_id" type="text" class="sm-input" required maxlength="14" placeholder="الرقم القومي (14 رقم)"></div>
+                    </div>
 
-                    <div class="sm-form-group"><label class="sm-label">الجامعة:</label><select name="university" class="sm-select add-cascading" required><option value="">-- اختر الجامعة --</option><?php foreach(SM_Settings::get_universities() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">الكلية:</label><select name="faculty" class="sm-select add-cascading" required disabled><option value="">-- اختر الكلية --</option><?php foreach(SM_Settings::get_faculties() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">القسم:</label><select name="department" class="sm-select add-cascading" required disabled><option value="">-- اختر القسم --</option><?php foreach(SM_Settings::get_departments() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">التخصص:</label><select name="specialization" class="sm-select add-cascading" required disabled><option value="">-- اختر التخصص --</option><?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="sm-form-group"><input name="email" type="email" class="sm-input" placeholder="البريد الإلكتروني"></div>
+                        <div class="sm-form-group"><input name="phone" type="text" class="sm-input" placeholder="رقم الهاتف الجوال"></div>
+                    </div>
 
-                    <div class="sm-form-group"><label class="sm-label">فرع الميلاد:</label><input name="province_of_birth" type="text" class="sm-input"></div>
-                    <div class="sm-form-group"><label class="sm-label">الدرجة العلمية:</label><select name="academic_degree" class="sm-select"><?php foreach (SM_Settings::get_academic_degrees() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">الفرع:</label><select name="governorate" class="sm-select"><option value="">-- اختر الفرع --</option><?php
-                        $db_branches = SM_DB::get_branches_data();
-                        if (!empty($db_branches)) {
-                            foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
-                        } else {
-                            foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
-                        }
-                    ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">رقم العضوية:</label><input name="membership_number" type="text" class="sm-input"></div>
-                    <div class="sm-form-group"><label class="sm-label">تاريخ بدء العضوية:</label><input name="membership_start_date" id="add_mem_start" type="date" class="sm-input" onchange="smCalculateDateExpiry('add_mem_start', 'add_mem_expiry')"></div>
-                    <div class="sm-form-group"><label class="sm-label">تاريخ انتهاء العضوية:</label><input name="membership_expiration_date" id="add_mem_expiry" type="date" class="sm-input"></div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                        <div class="sm-form-group">
+                            <select name="residence_governorate" class="sm-select" required>
+                                <option value="">-- محافظة الإقامة --</option>
+                                <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                            </select>
+                        </div>
+                        <div class="sm-form-group"><input name="residence_city" type="text" class="sm-input" required placeholder="مدينة الإقامة"></div>
+                    </div>
+
+                    <div class="sm-form-group" style="margin-bottom: 15px;">
+                        <input name="residence_street" type="text" class="sm-input" required placeholder="العنوان بالتفصيل">
+                    </div>
+
+                    <hr style="margin: 20px 0; border: 0; border-top: 1px solid #eee;">
+
+                    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px;">
+                        <div class="sm-form-group">
+                            <select name="professional_grade" class="sm-select">
+                                <option value="">-- الدرجة الوظيفية --</option>
+                                <?php foreach (SM_Settings::get_professional_grades() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            </select>
+                        </div>
+                        <div class="sm-form-group">
+                            <select name="academic_degree" class="sm-select">
+                                <option value="">-- الدرجة العلمية --</option>
+                                <?php foreach (SM_Settings::get_academic_degrees() as $k => $v) echo "<option value='$k'>$v</option>"; ?>
+                            </select>
+                        </div>
+                        <div class="sm-form-group">
+                            <select name="governorate" class="sm-select">
+                                <option value="">-- فرع القيد --</option>
+                                <?php
+                                $db_branches = SM_DB::get_branches_data();
+                                if (!empty($db_branches)) {
+                                    foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                                } else {
+                                    foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                                }
+                                ?>
+                            </select>
+                        </div>
+
+                        <div class="sm-form-group"><select name="university" class="sm-select add-cascading" required><option value="">-- اختر الجامعة --</option><?php foreach(SM_Settings::get_universities() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                        <div class="sm-form-group"><select name="faculty" class="sm-select add-cascading" required disabled><option value="">-- اختر الكلية --</option><?php foreach(SM_Settings::get_faculties() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                        <div class="sm-form-group"><select name="department" class="sm-select add-cascading" required disabled><option value="">-- اختر القسم --</option><?php foreach(SM_Settings::get_departments() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
+                        <div class="sm-form-group"><select name="specialization" class="sm-select add-cascading" required disabled><option value="">-- اختر التخصص --</option><?php foreach (SM_Settings::get_specializations() as $k => $v) echo "<option value='$k'>$v</option>"; ?></select></div>
+
+                        <div class="sm-form-group"><input name="membership_number" type="text" class="sm-input" placeholder="رقم القيد / العضوية"></div>
+                        <div class="sm-form-group"><input name="membership_start_date" id="add_mem_start" type="date" class="sm-input" onchange="smCalculateDateExpiry('add_mem_start', 'add_mem_expiry')" title="تاريخ بدء العضوية"></div>
+                        <div class="sm-form-group"><input name="membership_expiration_date" id="add_mem_expiry" type="date" class="sm-input" title="تاريخ انتهاء العضوية"></div>
+                    </div>
                 </div>
                 <button type="submit" class="sm-btn">إضافة العضو</button>
             </form>

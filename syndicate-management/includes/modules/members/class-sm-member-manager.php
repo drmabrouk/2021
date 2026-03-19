@@ -152,10 +152,20 @@ class SM_Member_Manager {
         if (!wp_verify_nonce($_POST['sm_nonce'], 'sm_syndicateMemberAction')) {
             wp_send_json_error('Security check failed');
         }
+
         $user_login = sanitize_user($_POST['user_login']);
         $email = sanitize_email($_POST['user_email']);
         $display_name = sanitize_text_field($_POST['display_name']);
         $role = sanitize_text_field($_POST['role']);
+
+        // Security: Prevent privilege escalation
+        $allowed_roles = ['sm_syndicate_member', 'sm_syndicate_admin', 'sm_system_admin', 'sm_member'];
+        if (!in_array($role, $allowed_roles)) {
+            wp_send_json_error('Invalid role specified');
+        }
+        if ($role === 'sm_system_admin' && !current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions to assign this role');
+        }
 
         if (username_exists($user_login) || email_exists($email)) {
             wp_send_json_error('User or Email already exists');
@@ -195,6 +205,16 @@ class SM_Member_Manager {
         }
         $uid = intval($_POST['edit_officer_id']);
         $role = sanitize_text_field($_POST['role']);
+
+        // Security: Prevent privilege escalation
+        $allowed_roles = ['sm_syndicate_member', 'sm_syndicate_admin', 'sm_system_admin', 'sm_member'];
+        if (!in_array($role, $allowed_roles)) {
+            wp_send_json_error('Invalid role specified');
+        }
+        if ($role === 'sm_system_admin' && !current_user_can('manage_options')) {
+            wp_send_json_error('Insufficient permissions to assign this role');
+        }
+
         $data = [
             'ID' => $uid,
             'display_name' => sanitize_text_field($_POST['display_name']),

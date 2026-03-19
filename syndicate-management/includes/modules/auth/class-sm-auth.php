@@ -23,12 +23,12 @@ class SM_Auth {
         ?>
         <div class="sm-login-container" style="display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; background: #f8fafc;">
             <div class="sm-login-box" style="width: 100%; max-width: 420px; background: #ffffff; border-radius: 24px; box-shadow: 0 20px 40px rgba(0,0,0,0.08); overflow: hidden; border: 1px solid #f1f5f9;" dir="rtl">
-                <div style="background: var(--sm-dark-color); padding: 30px 25px; text-align: center; color: #fff; position: relative;">
+                <div style="background: #f1f5f9; padding: 30px 25px; text-align: center; color: var(--sm-dark-color); position: relative; border-bottom: 1px solid #e2e8f0;">
                     <?php if (!empty($syndicate['syndicate_logo'])): ?>
-                        <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" style="max-height: 60px; margin-bottom: 15px; display: inline-block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));">
+                        <img src="<?php echo esc_url($syndicate['syndicate_logo']); ?>" style="max-height: 60px; margin-bottom: 15px; display: inline-block; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));">
                     <?php endif; ?>
-                    <h2 style="margin: 0; font-weight: 900; color: #fff; font-size: 1.4em; letter-spacing: -0.5px;"><?php echo esc_html($syndicate['syndicate_name']); ?></h2>
-                    <p style="margin: 5px 0 0 0; color: #e2e8f0; font-size: 0.8em; opacity: 0.9;">المنصة الرقمية للخدمات النقابية الموحدة</p>
+                    <h2 style="margin: 0; font-weight: 900; color: var(--sm-dark-color); font-size: 1.4em; letter-spacing: -0.5px;"><?php echo esc_html($syndicate['syndicate_name']); ?></h2>
+                    <p style="margin: 5px 0 0 0; color: #64748b; font-size: 0.8em;">المنصة الرقمية للخدمات النقابية الموحدة</p>
                 </div>
                 <div style="padding: 30px 30px;">
                     <?php if (isset($_GET['login']) && $_GET['login'] == 'failed'): ?>
@@ -68,13 +68,14 @@ class SM_Auth {
                     $form = wp_login_form($args);
                     $form = str_replace('name="log"', 'name="log" placeholder="الرقم القومي أو اسم المستخدم"', $form);
                     $form = str_replace('name="pwd"', 'name="pwd" id="sm_login_pwd" placeholder="كلمة المرور"', $form);
-                    $form = str_replace('</p>', '<span class="dashicons dashicons-visibility sm-password-toggle" onclick="smTogglePass(\'sm_login_pwd\', this)"></span></p>', $form);
+                    // Targeted replacement using regex to avoid duplication and handle different tag endings
+                    $form = preg_replace('/(<input[^>]+id="sm_login_pwd"[^>]*>)/', '$1<span class="dashicons dashicons-visibility sm-password-toggle" onclick="smTogglePass(\'sm_login_pwd\', this)"></span>', $form);
                     $form = preg_replace('/(<input[^>]+name="log"[^>]+>)\s*<span[^>]+><\/span>/', '$1', $form);
                     echo $form;
                     ?>
                     <div class="sm-login-footer-links">
-                        <a href="javascript:void(0)" onclick="smToggleRegistration()" class="sm-footer-btn sm-footer-btn-primary">عضو جديد</a>
-                        <a href="javascript:void(0)" onclick="smToggleActivation()" class="sm-footer-btn">تفعيل حساب</a>
+                        <a href="javascript:void(0)" onclick="smToggleRegistration()" class="sm-footer-btn sm-footer-btn-primary"><b>تسجيل</b></a>
+                        <a href="javascript:void(0)" onclick="smToggleActivation()" class="sm-footer-btn"><b>تسجيل دخول</b></a>
                         <a href="javascript:void(0)" onclick="smToggleRecovery()" style="grid-column: span 2; color: #64748b; font-size: 12px; text-decoration: none; text-align: center; margin-top: 10px;">نسيت كلمة المرور؟</a>
                     </div>
                 </div>
@@ -90,7 +91,7 @@ class SM_Auth {
         if (!is_user_logged_in()) {
             return '<div class="sm-topbar-login" style="display:flex; align-items:center; gap:8px; font-weight:700; margin:0; padding:0;">
                 <span class="dashicons dashicons-lock" style="color:#e53e3e; font-size:20px; width:20px; height:20px;"></span>
-                <a href="' . home_url('/sm-login') . '" style="text-decoration:none; color:inherit;">Register / Login</a>
+                <a href="' . home_url('/sm-login') . '" style="text-decoration:none; color:inherit;"><b>تسجيل دخول</b></a>
             </div>';
         }
         $user = wp_get_current_user();
