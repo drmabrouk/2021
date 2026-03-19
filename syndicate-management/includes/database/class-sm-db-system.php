@@ -243,8 +243,14 @@ class SM_DB_System {
     public static function save_branch($data) {
         global $wpdb;
         $table = $wpdb->prefix . 'sm_branches_data';
+
+        $slug = !empty($data['slug']) ? sanitize_title($data['slug']) : sanitize_title($data['name']);
+        if (empty($slug)) {
+            $slug = 'branch-' . mt_rand(1000, 9999);
+        }
+
         $branch_data = [
-            'slug' => sanitize_title($data['slug']),
+            'slug' => $slug,
             'name' => sanitize_text_field($data['name']),
             'phone' => sanitize_text_field($data['phone']),
             'email' => sanitize_email($data['email']),
@@ -256,8 +262,14 @@ class SM_DB_System {
             'digital_wallet' => sanitize_text_field($data['digital_wallet'] ?? ''),
             'instapay_id' => sanitize_text_field($data['instapay_id'] ?? '')
         ];
-        if (!empty($data['id'])) return $wpdb->update($table, $branch_data, ['id' => intval($data['id'])]);
-        else return $wpdb->insert($table, $branch_data);
+
+        if (!empty($data['id'])) {
+            $res = $wpdb->update($table, $branch_data, ['id' => intval($data['id'])]);
+            return ($res !== false);
+        } else {
+            $res = $wpdb->insert($table, $branch_data);
+            return ($res !== false);
+        }
     }
 
     public static function delete_branch($id) {

@@ -38,15 +38,30 @@ $syndicate = SM_Settings::get_syndicate_info();
             </div>
             <!-- Step 1: Personal Data -->
             <div id="reg-step-1" class="reg-step">
-                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
-                    <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">الاسم الرباعي الكامل:</label><input name="name" type="text" class="sm-input" required></div>
-                    <div class="sm-form-group"><label class="sm-label">الرقم القومي (14 رقم):</label><input name="national_id" type="text" class="sm-input" required maxlength="14"></div>
-                    <div class="sm-form-group"><label class="sm-label">رقم الهاتف الجوال:</label><input name="phone" type="text" class="sm-input" required placeholder="01xxxxxxxxx"></div>
-                    <div class="sm-form-group"><label class="sm-label">البريد الإلكتروني:</label><input name="email" type="email" class="sm-input" required placeholder="example@domain.com"></div>
-                    <div class="sm-form-group"><label class="sm-label">محافظة الإقامة:</label><select name="residence_governorate" class="sm-select" required><option value="">-- اختر --</option><?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?></select></div>
-                    <div class="sm-form-group"><label class="sm-label">مدينة الإقامة:</label><input name="residence_city" type="text" class="sm-input" required></div>
-                    <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">الشارع / القرية:</label><input name="residence_street" type="text" class="sm-input" required></div>
+                <div style="display:grid; grid-template-columns: 2fr 1.2fr; gap:15px; margin-bottom: 15px;">
+                    <div class="sm-form-group"><input name="name" type="text" class="sm-input" required placeholder="الاسم كما في الهوية الوطنية"></div>
+                    <div class="sm-form-group"><input name="national_id" type="text" class="sm-input" required maxlength="14" placeholder="الرقم القومي (14 رقم)"></div>
                 </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 15px;">
+                    <div class="sm-form-group"><input name="email" type="email" class="sm-input" required placeholder="البريد الإلكتروني"></div>
+                    <div class="sm-form-group"><input name="phone" type="text" class="sm-input" required placeholder="رقم الهاتف الجوال"></div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px; margin-bottom: 15px;">
+                    <div class="sm-form-group">
+                        <select name="residence_governorate" class="sm-select" required>
+                            <option value="">-- محافظة الإقامة --</option>
+                            <?php foreach(SM_Settings::get_governorates() as $k=>$v) echo "<option value='$k'>$v</option>"; ?>
+                        </select>
+                    </div>
+                    <div class="sm-form-group"><input name="residence_city" type="text" class="sm-input" required placeholder="مدينة الإقامة"></div>
+                </div>
+
+                <div class="sm-form-group" style="margin-bottom: 15px;">
+                    <input name="residence_street" type="text" class="sm-input" required placeholder="العنوان بالتفصيل">
+                </div>
+
                 <button type="button" onclick="smRegNext(2)" class="sm-btn" style="width:100%; margin-top:10px;">التالي: البيانات الأكاديمية</button>
             </div>
             <!-- Step 2: Academic Data -->

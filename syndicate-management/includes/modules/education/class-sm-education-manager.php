@@ -86,9 +86,20 @@ class SM_Education_Manager {
         check_ajax_referer('sm_survey_action', 'nonce');
 
         $sid = intval($_POST['survey_id']);
+        $user_id = get_current_user_id();
         $responses = json_decode(stripslashes($_POST['responses'] ?? '[]'), true);
         $questions = SM_DB_Education::get_test_questions($sid);
         $survey = SM_DB_Education::get_survey($sid);
+
+        if (!$survey) {
+            wp_send_json_error('Test not found');
+        }
+
+        // Security: Check attempt limits
+        $attempts_made = SM_DB_Education::get_user_attempts_count($sid, $user_id);
+        if ($attempts_made >= $survey->max_attempts) {
+            wp_send_json_error('لقد استنفدت كافة المحاولات المتاحة لهذا الاختبار.');
+        }
 
         $score = 0;
         $total_points = 0;
