@@ -655,7 +655,12 @@ class SM_Public {
         update_user_meta($uid, 'sm_temp_pass', $pass);
         update_user_meta($uid, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($uid, 'sm_phone', sanitize_text_field($_POST['phone']));
-        update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        // Professional grade restricted to Syndicate Member role only
+        if ($role === 'sm_syndicate_member') {
+            update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        } else {
+            delete_user_meta($uid, 'sm_rank');
+        }
         update_user_meta($uid, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($uid, 'sm_account_status', 'active');
 
@@ -713,7 +718,12 @@ class SM_Public {
         $u->set_role($role);
         update_user_meta($uid, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($uid, 'sm_phone', sanitize_text_field($_POST['phone']));
-        update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        // Professional grade restricted to Syndicate Member role only
+        if ($role === 'sm_syndicate_member') {
+            update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        } else {
+            delete_user_meta($uid, 'sm_rank');
+        }
         update_user_meta($uid, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($uid, 'sm_account_status', sanitize_text_field($_POST['account_status']));
 
@@ -738,8 +748,21 @@ class SM_Public {
         if ($uid === get_current_user_id()) {
             wp_send_json_error('Cannot delete yourself');
         }
-        wp_delete_user($uid);
-        wp_send_json_success('Deleted');
+
+        // Security Check: Syndicate Admins can only delete users within their branch
+        if (!current_user_can('sm_full_access')) {
+            $my_gov = get_user_meta(get_current_user_id(), 'sm_governorate', true);
+            $target_gov = get_user_meta($uid, 'sm_governorate', true);
+            if ($my_gov !== $target_gov) {
+                wp_send_json_error('Access denied: You can only delete users in your own branch.');
+            }
+        }
+
+        if (wp_delete_user($uid)) {
+            wp_send_json_success('Deleted');
+        } else {
+            wp_send_json_error('Failed to delete user');
+        }
     }
 
     public function ajax_bulk_delete_users() {
