@@ -70,9 +70,53 @@ window.smLoadMoreServices = function() {
 };
 
 window.smTrackServiceRequest = function() {
-    const code = document.getElementById('sm_service_tracking_input').value; const area = document.getElementById('sm-tracking-results-area'); if(!code) return alert('يرجى إدخال كود التتبع');
-    const fd = new FormData(); fd.append('action', 'sm_track_service_request'); fd.append('tracking_code', code);
-    fetch(ajaxurl, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{ area.style.display = 'block'; if(res.success) { const r = res.data; area.innerHTML = `<div style="overflow-x: auto;"><table style="width: 100%; border-collapse: separate; background: #fff; border-radius: 15px; overflow: hidden; border: 1px solid #f1f5f9;"><thead style="background: #f8fafc;"><tr><th style="padding: 15px 20px; text-align: right; font-weight: 800; color: var(--sm-dark-color);">البيان</th><th style="padding: 15px 20px; text-align: right; font-weight: 800; color: var(--sm-dark-color);">التفاصيل</th></tr></thead><tbody><tr><td style="padding: 15px 20px; color: #64748b; font-weight: 600;">كود التتبع</td><td style="padding: 15px 20px; color: var(--sm-dark-color); font-weight: 800;">${code}</td></tr><tr><td style="padding: 15px 20px; color: #64748b; font-weight: 600;">نوع الخدمة</td><td style="padding: 15px 20px; color: var(--sm-dark-color); font-weight: 700;">${r.service}</td></tr><tr><td style="padding: 15px 20px; color: #64748b; font-weight: 600;">الحالة الحالية</td><td style="padding: 15px 20px;"><span style="background: rgba(246, 48, 73, 0.1); color: var(--sm-primary-color); padding: 5px 15px; border-radius: 20px; font-weight: 800; font-size: 14px;">${r.status}</span></td></tr></tbody></table></div>`; } else area.innerHTML = `<div style="text-align:center; color:#e53e3e; font-weight:700;">${res.data}</div>`; });
+    const code = document.getElementById('sm_service_tracking_input').value.trim();
+    const area = document.getElementById('sm-tracking-results-area');
+    if(!code) return alert('يرجى إدخال كود التتبع');
+
+    const fd = new FormData();
+    fd.append('action', 'sm_track_service_request');
+    fd.append('tracking_code', code);
+
+    area.style.display = 'block';
+    area.innerHTML = '<div style="text-align:center; padding:20px; color:#64748b;">جاري البحث عن الطلب...</div>';
+
+    fetch(ajaxurl, {method:'POST', body:fd}).then(r=>r.json()).then(res=>{
+        if(res.success) {
+            const r = res.data;
+            area.innerHTML = `
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:20px;">
+                    <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #edf2f7;">
+                        <h4 style="margin:0 0 15px 0; color:var(--sm-primary-color); font-size:14px; border-bottom:1px solid #e2e8f0; pb:10px;">بيانات مقدم الطلب</h4>
+                        <div style="display:grid; gap:10px; font-size:13px;">
+                            <div><strong>الاسم:</strong> ${r.member}</div>
+                            <div><strong>البريد:</strong> ${r.email}</div>
+                            <div><strong>الهاتف:</strong> ${r.phone}</div>
+                            <div><strong>الفرع:</strong> ${r.branch || '---'}</div>
+                        </div>
+                    </div>
+                    <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #edf2f7;">
+                        <h4 style="margin:0 0 15px 0; color:var(--sm-primary-color); font-size:14px; border-bottom:1px solid #e2e8f0; pb:10px;">تفاصيل وحالة الطلب</h4>
+                        <div style="display:grid; gap:10px; font-size:13px;">
+                            <div><strong>رقم التتبع:</strong> ${code}</div>
+                            <div><strong>نوع الخدمة:</strong> ${r.service}</div>
+                            <div><strong>تاريخ الطلب:</strong> ${r.date}</div>
+                            <div style="margin-top:5px;">
+                                <strong>الحالة:</strong>
+                                <span style="background:var(--sm-primary-color); color:#fff; padding:3px 12px; border-radius:10px; font-weight:800; font-size:11px;">${r.status}</span>
+                            </div>
+                        </div>
+                    </div>
+                    ${r.notes ? `
+                    <div style="grid-column: span 2; background:#fffaf0; border:1px solid #feebc8; padding:15px; border-radius:12px; font-size:12px; color:#9c4221;">
+                        <strong>ملاحظات الإدارة:</strong> ${r.notes}
+                    </div>` : ''}
+                </div>
+            `;
+        } else {
+            area.innerHTML = `<div style="text-align:center; color:#e53e3e; font-weight:700; padding:10px;">${res.data}</div>`;
+        }
+    });
 };
 
 window.smOpenProgressiveForm = function(btn, s) {
@@ -93,13 +137,25 @@ window.smOpenProgressiveForm = function(btn, s) {
             html += `<div id="service-step-1">
                 <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الأولى: استكمال البيانات</h4>
                 <div id="service-req-fields">
-                    ${reqFields.length > 0 ? reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input id="f_${f.name}" type="${f.type||'text'}" class="sm-input" required></div>`).join('') : '<p style="color:#64748b; font-size:13px;">لا توجد حقول إضافية مطلوبة لهذه الخدمة.</p>'}
+                    ${reqFields.length > 0 ? reqFields.map(f => `<div class="sm-form-group"><label class="sm-label">${f.label}:</label><input id="f_${f.name}" type="${f.type||'text'}" class="sm-input" required value="${currentFormData[f.name] || ''}"></div>`).join('') : '<p style="color:#64748b; font-size:13px;">لا توجد حقول إضافية مطلوبة لهذه الخدمة.</p>'}
                 </div>
-                <button onclick="smServiceGoTo(2)" class="sm-btn" style="width:100%; margin-top:20px;">التالي: الشروط والأحكام</button>
+                <button onclick="smServiceGoTo(2)" class="sm-btn" style="width:100%; margin-top:20px;">التالي: مراجعة وتأكيد البيانات</button>
             </div>`;
         } else if (step === 2) {
             html += `<div id="service-step-2">
-                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثانية: الشروط والأحكام</h4>
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثانية: مراجعة وتأكيد البيانات</h4>
+                <div style="background:#f8fafc; padding:20px; border-radius:15px; border:1px solid #e2e8f0; margin-bottom:20px;">
+                    ${reqFields.map(f => `<div style="margin-bottom:10px; font-size:14px;"><strong>${f.label}:</strong> ${currentFormData[f.name] || '---'}</div>`).join('')}
+                    ${reqFields.length === 0 ? '<p style="color:#64748b;">لا توجد بيانات إضافية للمراجعة.</p>' : ''}
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                    <button onclick="smServiceGoTo(1)" class="sm-btn sm-btn-outline">تعديل البيانات</button>
+                    <button onclick="smServiceGoTo(3)" class="sm-btn">تأكيد البيانات والمتابعة</button>
+                </div>
+            </div>`;
+        } else if (step === 3) {
+            html += `<div id="service-step-3">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثالثة: الشروط والأحكام</h4>
                 <div style="background:#f8fafc; padding:20px; border-radius:15px; font-size:13px; color:#4a5568; line-height:1.8; max-height:200px; overflow-y:auto; margin-bottom:20px; border:1px solid #e2e8f0;">
                     1. أقر بصحة كافة البيانات المدخلة في هذا الطلب.<br>
                     2. أتعهد بسداد الرسوم المقررة للخدمة عبر القنوات المعتمدة.<br>
@@ -111,14 +167,14 @@ window.smOpenProgressiveForm = function(btn, s) {
                     <label for="sm_terms_agree" style="font-weight:700; font-size:14px; color:var(--sm-dark-color); cursor:pointer;">أوافق على الشروط والأحكام المذكورة أعلاه</label>
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
-                    <button onclick="smServiceGoTo(1)" class="sm-btn sm-btn-outline">السابق</button>
-                    <button onclick="smServiceGoTo(3)" class="sm-btn">التالي: سداد الرسوم</button>
+                    <button onclick="smServiceGoTo(2)" class="sm-btn sm-btn-outline">السابق</button>
+                    <button onclick="smServiceGoTo(4)" class="sm-btn">التالي: سداد الرسوم</button>
                 </div>
             </div>`;
-        } else if (step === 3) {
+        } else if (step === 4) {
             const feesText = s.fees > 0 ? `${s.fees} ج.م` : 'مجانية';
-            html += `<div id="service-step-3">
-                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الثالثة: سداد الرسوم المقررة</h4>
+            html += `<div id="service-step-4">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الرابعة: سداد الرسوم المقررة</h4>
                 <div style="background:#fffaf0; border:1px solid #feebc8; padding:15px; border-radius:12px; margin-bottom:20px;">
                     <div style="display:flex; justify-content:space-between; margin-bottom:5px;"><strong>إجمالي الرسوم:</strong> <span style="color:var(--sm-primary-color); font-weight:900;">${feesText}</span></div>
                     <div style="font-size:12px; color:#9c4221;">يرجى التحويل للفرع التابع له باستخدام البيانات التالية:</div>
@@ -137,8 +193,19 @@ window.smOpenProgressiveForm = function(btn, s) {
                     <input id="sm_trans_file" type="file" class="sm-input" accept="image/*">
                 </div>
                 <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px; margin-top:10px;">
-                    <button onclick="smServiceGoTo(2)" class="sm-btn sm-btn-outline">السابق</button>
-                    <button onclick="smSubmitFinalServiceRequest()" class="sm-btn" style="background:var(--sm-dark-color);">تأكيد وإرسال الطلب</button>
+                    <button onclick="smServiceGoTo(3)" class="sm-btn sm-btn-outline">السابق</button>
+                    <button onclick="smServiceGoTo(5)" class="sm-btn">التالي: مراجعة نهائية</button>
+                </div>
+            </div>`;
+        } else if (step === 5) {
+            html += `<div id="service-step-5">
+                <h4 style="margin-bottom:15px; color:var(--sm-primary-color); font-weight:800; font-size:15px;">المرحلة الخامسة: المراجعة النهائية والإرسال</h4>
+                <div style="background:#f0fff4; padding:20px; border-radius:15px; border:1px solid #c6f6d5; margin-bottom:25px;">
+                    <p style="margin:0; font-size:14px; color:#22543d; font-weight:700;">لقد قمت باستكمال كافة مراحل الطلب. يرجى التأكد من دقة بيانات التحويل المرفقة قبل الإرسال النهائي.</p>
+                </div>
+                <div style="display:grid; grid-template-columns: 1fr 2fr; gap:10px;">
+                    <button onclick="smServiceGoTo(4)" class="sm-btn sm-btn-outline">السابق</button>
+                    <button onclick="smSubmitFinalServiceRequest()" class="sm-btn" style="background:var(--sm-dark-color);">إرسال الطلب النهائي</button>
                 </div>
             </div>`;
         }
@@ -151,7 +218,7 @@ window.smOpenProgressiveForm = function(btn, s) {
             const inputs = document.querySelectorAll('#service-req-fields input');
             for(let i of inputs) { if(i.required && !i.value) return alert('يرجى ملء الحقول المطلوبة.'); currentFormData[i.id.replace('f_','')] = i.value; }
         }
-        if (step === 3) {
+        if (step === 4) {
             if (!document.getElementById('sm_terms_agree').checked) return alert('يجب الموافقة على الشروط للمتابعة.');
         }
         renderStep(step);
