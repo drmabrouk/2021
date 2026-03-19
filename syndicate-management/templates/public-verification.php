@@ -110,6 +110,18 @@
 }
 .sm-verify-card-professional:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
 
+.sm-verify-item-box {
+    padding: 12px;
+    border-radius: 15px;
+    background: #fdfdfd;
+    border: 1px solid #f1f5f9;
+    transition: 0.2s;
+}
+.sm-verify-item-box:hover {
+    background: #f8fafc;
+    border-color: #e2e8f0;
+}
+
 .sm-verify-suggestion-item {
     padding: 12px 20px;
     cursor: pointer;
@@ -181,7 +193,7 @@
         .then(res => {
             loading.hide();
             if (res.success) {
-                renderResults(res.data);
+                renderResults(res.data, resultsArea);
             } else {
                 resultsArea.append(`
                     <div style="background: #fff; padding: 40px; border-radius: 24px; text-align: center; border: 1px solid #feb2b2; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.05);">
@@ -194,33 +206,32 @@
         });
     });
 
-    function renderResults(data) {
-        const results = $('#sm-verify-results');
+    function renderResults(data, resultsArea) {
         const today = new Date();
 
         for (let k in data) {
             const doc = data[k];
             let isValid = true;
-            let statusLabel = 'صالح ومعتمد';
+            let statusLabel = 'بيانات صحيحة - مستند سارٍ';
             let statusIcon = 'dashicons-shield-check';
 
             if (doc.expiry) {
                 const expiry = new Date(doc.expiry);
                 if (expiry < today) {
                     isValid = false;
-                    statusLabel = 'منتهي الصلاحية';
+                    statusLabel = 'مستند منتهي الصلاحية';
                     statusIcon = 'dashicons-warning';
                 }
             }
 
             let html = `
-                <div class="sm-verify-card-professional">
+                <div class="sm-verify-card-professional" style="border-right: 5px solid ${isValid ? '#38a169' : '#e53e3e'};">
                     <div style="background: ${isValid ? 'linear-gradient(135deg, #38a169 0%, #2f855a 100%)' : 'linear-gradient(135deg, #e53e3e 0%, #c53030 100%)'}; padding: 25px 35px; color: #fff; display: flex; justify-content: space-between; align-items: center;">
                         <div>
-                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: 700; margin-bottom: 5px;">نوع المستند</div>
+                            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 1px; opacity: 0.8; font-weight: 700; margin-bottom: 5px;">نوع المستند المعتمد</div>
                             <h3 style="margin: 0; font-weight: 900; font-size: 1.4em; color: #fff;">${doc.label}</h3>
                         </div>
-                        <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(5px); display: flex; align-items: center; gap: 10px;">
+                        <div style="background: rgba(255,255,255,0.2); padding: 10px 20px; border-radius: 12px; backdrop-filter: blur(5px); display: flex; align-items: center; gap: 10px; border: 1px solid rgba(255,255,255,0.3);">
                             <span class="dashicons ${statusIcon}"></span>
                             <span style="font-weight: 800; font-size: 14px;">${statusLabel}</span>
                         </div>

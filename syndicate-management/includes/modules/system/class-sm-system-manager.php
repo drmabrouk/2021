@@ -157,4 +157,179 @@ class SM_System_Manager {
         }
         wp_send_json_error('نوع الاستعادة غير مدعوم');
     }
+
+    public static function ajax_get_counts() {
+        if (!is_user_logged_in()) {
+            wp_send_json_error('Unauthorized');
+        }
+        wp_send_json_success(['pending_reports' => SM_DB::get_pending_reports_count()]);
+    }
+
+    public static function ajax_delete_gov_data() {
+        if (!current_user_can('manage_options') && !current_user_can('sm_full_access')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        global $wpdb;
+        $gov = sanitize_text_field($_POST['governorate']);
+        if (!$gov) {
+            wp_send_json_error('فرع غير محددة');
+        }
+        $m_ids = $wpdb->get_col($wpdb->prepare("SELECT id FROM {$wpdb->prefix}sm_members WHERE governorate = %s", $gov));
+        if (empty($m_ids)) {
+            wp_send_json_success('لا توجد بيانات');
+        }
+        $uids = $wpdb->get_col($wpdb->prepare("SELECT wp_user_id FROM {$wpdb->prefix}sm_members WHERE governorate = %s AND wp_user_id IS NOT NULL", $gov));
+        if (!empty($uids)) {
+            require_once(ABSPATH . 'wp-admin/includes/user.php');
+            foreach ($uids as $uid) wp_delete_user($uid);
+        }
+        $ids_str = implode(',', array_map('intval', $m_ids));
+        $wpdb->query("DELETE FROM {$wpdb->prefix}sm_payments WHERE member_id IN ($ids_str)");
+        $wpdb->query($wpdb->prepare("DELETE FROM {$wpdb->prefix}sm_members WHERE governorate = %s", $gov));
+        SM_Logger::log('حذف بيانات فرع', "تم مسح كافة بيانات فرع: $gov");
+        wp_send_json_success();
+    }
+
+    public static function ajax_merge_gov_data() {
+        if (!current_user_can('manage_options') && !current_user_can('sm_full_access')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $gov = sanitize_text_field($_POST['governorate']);
+        if (empty($_FILES['backup_file']['tmp_name'])) {
+            wp_send_json_error('الملف غير موجود');
+        }
+        $data = json_decode(file_get_contents($_FILES['backup_file']['tmp_name']), true);
+        if (!$data || !isset($data['members'])) {
+            wp_send_json_error('تنسيق غير صحيح');
+        }
+        $success = 0;
+        foreach ($data['members'] as $row) {
+            if ($row['governorate'] !== $gov || SM_DB::member_exists($row['national_id'])) {
+                continue;
+            }
+            unset($row['id']);
+            $tp = 'IRS' . mt_rand(1000000000, 9999999999);
+            $uid = wp_insert_user([
+                'user_login' => $row['national_id'],
+                'user_email' => $row['email'] ?: $row['national_id'] . '@irseg.org',
+                'display_name' => $row['name'],
+                'user_pass' => $tp,
+                'role' => 'sm_syndicate_member'
+            ]);
+            if (!is_wp_error($uid)) {
+                $row['wp_user_id'] = $uid;
+                update_user_meta($uid, 'sm_temp_pass', $tp);
+                update_user_meta($uid, 'sm_governorate', $gov);
+            }
+            global $wpdb;
+            if ($wpdb->insert("{$wpdb->prefix}sm_members", $row)) {
+                $success++;
+            }
+        }
+        wp_send_json_success("تم دمج $success عضواً.");
+    }
+
+    public static function ajax_delete_log() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        global $wpdb;
+        $wpdb->delete("{$wpdb->prefix}sm_logs", ['id' => intval($_POST['log_id'])]);
+        wp_send_json_success();
+    }
+
+    public static function ajax_clear_all_logs() {
+        if (!current_user_can('manage_options')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        global $wpdb;
+        $wpdb->query("TRUNCATE TABLE {$wpdb->prefix}sm_logs");
+        wp_send_json_success();
+    }
+
+    public static function ajax_get_pub_template() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        global $wpdb;
+        $t = $wpdb->get_row($wpdb->prepare("SELECT * FROM {$wpdb->prefix}sm_pub_templates WHERE id = %d", intval($_GET['id'])));
+        if ($t) {
+            wp_send_json_success($t);
+        } else {
+            wp_send_json_error('Not found');
+        }
+    }
+
+    public static function ajax_generate_pub_doc() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_pub_action', 'nonce');
+        $did = SM_DB::generate_pub_document([
+            'title' => sanitize_text_field($_POST['title']),
+            'content' => wp_kses_post($_POST['content']),
+            'member_id' => intval($_POST['member_id'] ?? 0),
+            'options' => [
+                'doc_type' => sanitize_text_field($_POST['doc_type'] ?? 'report'),
+                'fees' => floatval($_POST['fees'] ?? 0),
+                'header' => isset($_POST['header']),
+                'footer' => isset($_POST['footer']),
+                'qr' => isset($_POST['qr']),
+                'barcode' => isset($_POST['barcode'])
+            ]
+        ]);
+        if ($did) {
+            wp_send_json_success(['url' => admin_url('admin-ajax.php?action=sm_print_pub_doc&id=' . $did . '&format=' . sanitize_text_field($_POST['format'] ?? 'pdf'))]);
+        } else {
+            wp_send_json_error('Failed');
+        }
+    }
+
+    public static function ajax_save_pub_identity() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_pub_action', 'nonce');
+        $info = SM_Settings::get_syndicate_info();
+        $info['syndicate_name'] = sanitize_text_field($_POST['syndicate_name']);
+        $info['authority_name'] = sanitize_text_field($_POST['authority_name']);
+        $info['phone'] = sanitize_text_field($_POST['phone']);
+        $info['email'] = sanitize_email($_POST['email']);
+        $info['address'] = sanitize_text_field($_POST['address']);
+        $info['syndicate_logo'] = esc_url_raw($_POST['syndicate_logo']);
+        $info['authority_logo'] = esc_url_raw($_POST['authority_logo']);
+        SM_Settings::save_syndicate_info($info);
+        wp_send_json_success();
+    }
+
+    public static function ajax_save_pub_template() {
+        if (!current_user_can('sm_manage_system')) {
+            wp_send_json_error('Unauthorized');
+        }
+        check_ajax_referer('sm_pub_action', 'nonce');
+        if (SM_DB::save_pub_template($_POST)) {
+            wp_send_json_success();
+        } else {
+            wp_send_json_error('Failed');
+        }
+    }
+
+    public static function ajax_export_branches() {
+        if (!current_user_can('sm_full_access')) {
+            wp_die('Unauthorized');
+        }
+        check_ajax_referer('sm_admin_action', 'nonce');
+        $bs = SM_DB::get_branches_data();
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename=branches.csv');
+        $out = fopen('php://output', 'w');
+        fputcsv($out, ['ID', 'Slug', 'Name', 'Phone', 'Email', 'Address']);
+        foreach ($bs as $b) fputcsv($out, [$b->id, $b->slug, $b->name, $b->phone, $b->email, $b->address]);
+        fclose($out);
+        exit;
+    }
 }
