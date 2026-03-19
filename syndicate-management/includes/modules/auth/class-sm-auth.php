@@ -244,14 +244,20 @@ class SM_Auth {
     public static function ajax_activate_account_step1() {
         $national_id = sanitize_text_field($_POST['national_id'] ?? '');
         $membership_number = sanitize_text_field($_POST['membership_number'] ?? '');
+        $branch_slug = sanitize_text_field($_POST['branch'] ?? '');
+
         $member = SM_DB::get_member_by_national_id($national_id);
         if (!$member) {
-            wp_send_json_error('الرقم القومي غير موجود في السجلات.');
+            wp_send_json_error('الرقم القومي غير موجود في السجلات المهنية.');
         }
         if ($member->membership_number !== $membership_number) {
-            wp_send_json_error('بيانات التحقق غير صحيحة، يرجى مراجعة رقم العضوية.');
+            wp_send_json_error('بيانات التحقق غير صحيحة، يرجى مراجعة رقم القيد.');
         }
-        wp_send_json_success('تم التحقق بنجاح. يرجى إكمال بيانات الحساب');
+        if ($member->governorate !== $branch_slug) {
+            wp_send_json_error('العضو غير مسجل في الفرع المختار. يرجى اختيار الفرع الصحيح.');
+        }
+
+        wp_send_json_success('تم التحقق بنجاح. يرجى إكمال بيانات التواصل');
     }
 
     public static function ajax_activate_account_final() {

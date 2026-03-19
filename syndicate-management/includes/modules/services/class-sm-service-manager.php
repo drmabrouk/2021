@@ -123,7 +123,16 @@ class SM_Service_Manager {
             }
         }
 
-        $res = SM_DB::submit_service_request($_POST);
+        $data = $_POST;
+        if (!empty($_FILES['payment_receipt'])) {
+            require_once(ABSPATH . 'wp-admin/includes/file.php');
+            $upload = wp_handle_upload($_FILES['payment_receipt'], ['test_form' => false]);
+            if (isset($upload['url'])) {
+                $data['payment_receipt_url'] = $upload['url'];
+            }
+        }
+
+        $res = SM_DB::submit_service_request($data);
         if ($res) {
             SM_Logger::log('طلب خدمة رقمية', "العضو ID: $mid طلب خدمة ID: $sid");
             wp_send_json_success(date('Ymd') . $res);

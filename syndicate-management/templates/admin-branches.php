@@ -60,9 +60,19 @@
                 <div class="sm-form-group"><label class="sm-label">رقم الهاتف:</label><input type="text" name="phone" class="sm-input"></div>
                 <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">البريد الإلكتروني:</label><input type="email" name="email" class="sm-input"></div>
                 <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">العنوان التفصيلي:</label><input type="text" name="address" class="sm-input"></div>
-                <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">وصف إضافي:</label><textarea name="description" class="sm-textarea" rows="3"></textarea></div>
+                <div class="sm-form-group" style="grid-column: span 2;"><label class="sm-label">وصف إضافي:</label><textarea name="description" class="sm-textarea" rows="2"></textarea></div>
             </div>
-            <button type="submit" class="sm-btn" style="width:100%; margin-top:10px;">حفظ بيانات الفرع</button>
+
+            <div style="margin-top:20px; border-top:1px solid #edf2f7; pt:20px;">
+                <h4 style="margin:20px 0 15px 0; color:var(--sm-primary-color); font-weight:800; font-size:14px;">بيانات التحصيل المالي للفروع</h4>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:15px;">
+                    <div class="sm-form-group"><label class="sm-label">رقم الآيبان (IBAN):</label><input type="text" name="bank_iban" class="sm-input"></div>
+                    <div class="sm-form-group"><label class="sm-label">حساب البنك المحلي:</label><input type="text" name="bank_local" class="sm-input"></div>
+                    <div class="sm-form-group"><label class="sm-label">رقم المحفظة الإلكترونية:</label><input type="text" name="digital_wallet" class="sm-input"></div>
+                    <div class="sm-form-group"><label class="sm-label">عنوان انستا باي (Instapay):</label><input type="text" name="instapay_id" class="sm-input"></div>
+                </div>
+            </div>
+            <button type="submit" class="sm-btn" style="width:100%; margin-top:20px;">حفظ بيانات الفرع</button>
         </form>
     </div>
 </div>
@@ -85,6 +95,10 @@ window.smEditBranch = function(b) {
     f.email.value = b.email || '';
     f.address.value = b.address || '';
     f.description.value = b.description || '';
+    f.bank_iban.value = b.bank_iban || '';
+    f.bank_local.value = b.bank_local || '';
+    f.digital_wallet.value = b.digital_wallet || '';
+    f.instapay_id.value = b.instapay_id || '';
     document.getElementById('sm-branch-modal-title').innerText = 'تعديل بيانات الفرع';
     document.getElementById('sm-branch-modal').style.display = 'flex';
 };
