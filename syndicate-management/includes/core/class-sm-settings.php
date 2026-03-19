@@ -36,6 +36,10 @@ class SM_Settings {
             'tab_global_settings' => 'إعدادات النظام',
             'tab_update_requests' => 'طلبات التحديث',
             'tab_my_profile' => 'ملفي الشخصي',
+            'tab_branches' => 'إدارة فروع النقابة',
+            'tab_issue_document' => 'إصدار المستندات',
+            'tab_digital_services' => 'الخدمات الرقمية',
+            'tab_global_archive' => 'الأرشيف الرقمي العام',
             'field_specialty' => 'التخصص المهني',
             'field_grade' => 'الدرجة الوظيفية',
             'field_rank' => 'الرتبة النقابية'
@@ -368,7 +372,10 @@ class SM_Settings {
             'license_penalty' => 500,
             'facility_a' => 9000,
             'facility_b' => 6000,
-            'facility_c' => 3000
+            'facility_c' => 3000,
+            'card_print_fee' => 150,
+            'admin_service_fee' => 50,
+            'test_entry_fee' => 200
         );
         return get_option('sm_finance_settings', $default);
     }

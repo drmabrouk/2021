@@ -158,12 +158,11 @@ class SM_Admin {
                 'syndicate_officer_name' => 'syndicate_officer_name',
                 'syndicate_phone' => 'phone',
                 'syndicate_email' => 'email',
+                'syndicate_postal_code' => 'postal_code',
                 'syndicate_logo' => 'syndicate_logo',
                 'syndicate_address' => 'address',
                 'syndicate_map_link' => 'map_link',
-                'syndicate_extra_details' => 'extra_details',
-                'authority_name' => 'authority_name',
-                'authority_logo' => 'authority_logo'
+                'syndicate_extra_details' => 'extra_details'
             ];
 
             foreach ($fields as $post_key => $info_key) {
@@ -172,6 +171,21 @@ class SM_Admin {
                 }
             }
             SM_Settings::save_syndicate_info($info);
+
+            // Save Appearance (Colors & Design)
+            SM_Settings::save_appearance([
+                'primary_color' => sanitize_hex_color($_POST['primary_color']),
+                'secondary_color' => sanitize_hex_color($_POST['secondary_color']),
+                'accent_color' => sanitize_hex_color($_POST['accent_color']),
+                'dark_color' => sanitize_hex_color($_POST['dark_color']),
+                'bg_color' => sanitize_hex_color($_POST['bg_color']),
+                'sidebar_bg_color' => sanitize_hex_color($_POST['sidebar_bg_color']),
+                'font_color' => sanitize_hex_color($_POST['font_color']),
+                'border_color' => sanitize_hex_color($_POST['border_color']),
+                'font_size' => sanitize_text_field($_POST['font_size']),
+                'font_weight' => sanitize_text_field($_POST['font_weight']),
+                'line_spacing' => sanitize_text_field($_POST['line_spacing'])
+            ]);
 
             $labels = SM_Settings::get_labels();
             foreach ($labels as $key => $val) {
@@ -205,12 +219,15 @@ class SM_Admin {
                 'membership_new' => floatval($_POST['membership_new']),
                 'membership_renewal' => floatval($_POST['membership_renewal']),
                 'membership_penalty' => floatval($_POST['membership_penalty']),
+                'card_print_fee' => floatval($_POST['card_print_fee']),
                 'license_new' => floatval($_POST['license_new']),
                 'license_renewal' => floatval($_POST['license_renewal']),
                 'license_penalty' => floatval($_POST['license_penalty']),
+                'test_entry_fee' => floatval($_POST['test_entry_fee']),
                 'facility_a' => floatval($_POST['facility_a']),
                 'facility_b' => floatval($_POST['facility_b']),
-                'facility_c' => floatval($_POST['facility_c'])
+                'facility_c' => floatval($_POST['facility_c']),
+                'admin_service_fee' => floatval($_POST['admin_service_fee'])
             ]);
             wp_redirect(add_query_arg(['sm_tab' => 'global-settings', 'sub' => 'finance', 'settings_saved' => 1], wp_get_referer()));
             exit;

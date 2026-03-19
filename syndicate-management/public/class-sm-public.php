@@ -364,9 +364,7 @@ class SM_Public {
                 'syndicate_logo' => 'syndicate_logo',
                 'syndicate_address' => 'address',
                 'syndicate_map_link' => 'map_link',
-                'syndicate_extra_details' => 'extra_details',
-                'authority_name' => 'authority_name',
-                'authority_logo' => 'authority_logo'
+                'syndicate_extra_details' => 'extra_details'
             ];
 
             foreach($fields as $post_key => $info_key) {
@@ -375,6 +373,21 @@ class SM_Public {
                 }
             }
             SM_Settings::save_syndicate_info($info);
+
+            // Save Appearance (Colors & Design)
+            SM_Settings::save_appearance([
+                'primary_color' => sanitize_hex_color($_POST['primary_color']),
+                'secondary_color' => sanitize_hex_color($_POST['secondary_color']),
+                'accent_color' => sanitize_hex_color($_POST['accent_color']),
+                'dark_color' => sanitize_hex_color($_POST['dark_color']),
+                'bg_color' => sanitize_hex_color($_POST['bg_color']),
+                'sidebar_bg_color' => sanitize_hex_color($_POST['sidebar_bg_color']),
+                'font_color' => sanitize_hex_color($_POST['font_color']),
+                'border_color' => sanitize_hex_color($_POST['border_color']),
+                'font_size' => sanitize_text_field($_POST['font_size']),
+                'font_weight' => sanitize_text_field($_POST['font_weight']),
+                'line_spacing' => sanitize_text_field($_POST['line_spacing'])
+            ]);
 
             $labels = SM_Settings::get_labels();
             foreach($labels as $key => $val) {
