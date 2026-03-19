@@ -252,7 +252,7 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الفرع:</label>
-                        <select name="governorate" id="edit_off_gov" class="sm-select">
+                        <select name="governorate" id="edit_off_gov" class="sm-select" <?php if (!$is_sys_manager && $is_syndicate_admin) echo 'disabled'; ?>>
                             <option value="">-- اختر الفرع --</option>
                             <?php
                                 $db_branches = SM_DB::get_branches_data();
@@ -263,6 +263,9 @@
                                 }
                             ?>
                         </select>
+                        <?php if (!$is_sys_manager && $is_syndicate_admin): ?>
+                            <input type="hidden" name="governorate" value="<?php echo esc_attr($my_gov); ?>">
+                        <?php endif; ?>
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الرقم القومي:</label>
@@ -321,17 +324,26 @@
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">الفرع:</label>
-                        <select name="governorate" class="sm-select">
+                        <select name="governorate" class="sm-select" <?php if (!$is_sys_manager && $is_syndicate_admin) echo 'disabled'; ?>>
                             <option value="">-- اختر الفرع --</option>
                             <?php
                                 $db_branches = SM_DB::get_branches_data();
                                 if (!empty($db_branches)) {
-                                    foreach($db_branches as $db) echo "<option value='".esc_attr($db->slug)."'>".esc_html($db->name)."</option>";
+                                    foreach($db_branches as $db) {
+                                        $sel = (!$is_sys_manager && $is_syndicate_admin && $db->slug === $my_gov) ? 'selected' : '';
+                                        echo "<option value='".esc_attr($db->slug)."' $sel>".esc_html($db->name)."</option>";
+                                    }
                                 } else {
-                                    foreach (SM_Settings::get_governorates() as $k => $v) echo "<option value='$k'>$v</option>";
+                                    foreach (SM_Settings::get_governorates() as $k => $v) {
+                                        $sel = (!$is_sys_manager && $is_syndicate_admin && $k === $my_gov) ? 'selected' : '';
+                                        echo "<option value='$k' $sel>$v</option>";
+                                    }
                                 }
                             ?>
                         </select>
+                        <?php if (!$is_sys_manager && $is_syndicate_admin): ?>
+                            <input type="hidden" name="governorate" value="<?php echo esc_attr($my_gov); ?>">
+                        <?php endif; ?>
                     </div>
                     <div class="sm-form-group">
                         <label class="sm-label">رقم الهاتف:</label>
@@ -356,6 +368,19 @@
     </div>
 
     <script>
+    document.addEventListener('click', function(e) {
+        const trigger = e.target.closest('.sm-actions-trigger');
+        if (trigger) {
+            const content = trigger.nextElementSibling;
+            const isVisible = content.style.display === 'block';
+            document.querySelectorAll('.sm-actions-content').forEach(c => c.style.display = 'none');
+            content.style.display = isVisible ? 'none' : 'block';
+            e.stopPropagation();
+        } else {
+            document.querySelectorAll('.sm-actions-content').forEach(c => c.style.display = 'none');
+        }
+    });
+
     function toggleAllUsers(master) {
         document.querySelectorAll('.user-cb').forEach(cb => cb.checked = master.checked);
     }
@@ -412,8 +437,13 @@
             document.getElementById('edit_off_status').value = u.status || 'active';
             document.getElementById('edit_off_role').value = u.role;
             document.getElementById('edit_off_rank').value = u.rank || '';
-            document.getElementById('edit_off_gov').value = u.governorate || '';
             document.getElementById('edit_off_nid').value = u.national_id || '';
+
+            const govField = document.getElementById('edit_off_gov');
+            if (govField) {
+                govField.value = u.governorate || '';
+            }
+
             document.getElementById('edit-staff-modal').style.display = 'flex';
         };
 

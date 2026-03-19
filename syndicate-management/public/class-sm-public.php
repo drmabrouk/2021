@@ -628,17 +628,22 @@ class SM_Public {
         if (!wp_verify_nonce($_POST['sm_nonce'], 'sm_syndicateMemberAction')) {
             wp_send_json_error('Security check failed');
         }
-        $user = sanitize_user($_POST['user_login']);
+        $user_login = sanitize_user($_POST['user_login']);
         $email = sanitize_email($_POST['user_email']);
         $name = sanitize_text_field($_POST['display_name']);
         $role = sanitize_text_field($_POST['role']);
 
-        if (username_exists($user) || email_exists($email)) {
+        // Role restriction: Syndicate Admins can only create Syndicate Members
+        if (!current_user_can('sm_full_access') && $role !== 'sm_syndicate_member') {
+            wp_send_json_error('You can only create Syndicate Members');
+        }
+
+        if (username_exists($user_login) || email_exists($email)) {
             wp_send_json_error('User or Email already exists');
         }
         $pass = !empty($_POST['user_pass']) ? $_POST['user_pass'] : 'IRS' . mt_rand(1000000000, 9999999999);
         $uid = wp_insert_user([
-            'user_login' => $user,
+            'user_login' => $user_login,
             'user_email' => $email,
             'display_name' => $name,
             'user_pass' => $pass,
@@ -651,10 +656,11 @@ class SM_Public {
         update_user_meta($uid, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($uid, 'sm_phone', sanitize_text_field($_POST['phone']));
         update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        update_user_meta($uid, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($uid, 'sm_account_status', 'active');
 
         $gov = sanitize_text_field($_POST['governorate'] ?? '');
-        if (in_array('sm_syndicate_admin', (array)wp_get_current_user()->roles)) {
+        if (!current_user_can('sm_full_access')) {
             $gov = get_user_meta(get_current_user_id(), 'sm_governorate', true);
         }
         update_user_meta($uid, 'sm_governorate', $gov);
@@ -670,7 +676,24 @@ class SM_Public {
             wp_send_json_error('Security check failed');
         }
         $uid = intval($_POST['edit_officer_id']);
+
+        // Security Check: Syndicate Admins can only edit users within their branch
+        if (!current_user_can('sm_full_access')) {
+            $my_gov = get_user_meta(get_current_user_id(), 'sm_governorate', true);
+            $target_gov = get_user_meta($uid, 'sm_governorate', true);
+            if ($my_gov !== $target_gov) {
+                wp_send_json_error('Access denied: You can only edit users in your own branch.');
+            }
+        }
+
         $role = sanitize_text_field($_POST['role']);
+        // Syndicate Admins cannot escalate privileges
+        if (!current_user_can('sm_full_access') && !in_array($role, ['sm_syndicate_member', 'sm_member'])) {
+             // Keep existing role if trying to escalate
+             $u_obj = get_userdata($uid);
+             $role = $u_obj->roles[0] ?? 'sm_syndicate_member';
+        }
+
         $data = [
             'ID' => $uid,
             'display_name' => sanitize_text_field($_POST['display_name']),
@@ -680,13 +703,26 @@ class SM_Public {
             $data['user_pass'] = $_POST['user_pass'];
             update_user_meta($uid, 'sm_temp_pass', $_POST['user_pass']);
         }
-        wp_update_user($data);
+
+        $updated = wp_update_user($data);
+        if (is_wp_error($updated)) {
+            wp_send_json_error($updated->get_error_message());
+        }
+
         $u = new WP_User($uid);
         $u->set_role($role);
         update_user_meta($uid, 'sm_syndicateMemberIdAttr', sanitize_text_field($_POST['officer_id']));
         update_user_meta($uid, 'sm_phone', sanitize_text_field($_POST['phone']));
         update_user_meta($uid, 'sm_rank', sanitize_text_field($_POST['rank']));
+        update_user_meta($uid, 'sm_national_id', sanitize_text_field($_POST['national_id']));
         update_user_meta($uid, 'sm_account_status', sanitize_text_field($_POST['account_status']));
+
+        $gov = sanitize_text_field($_POST['governorate'] ?? '');
+        if (!current_user_can('sm_full_access')) {
+            $gov = get_user_meta(get_current_user_id(), 'sm_governorate', true);
+        }
+        update_user_meta($uid, 'sm_governorate', $gov);
+
         SM_Logger::log('تحديث مستخدم', "الاسم: {$_POST['display_name']}");
         wp_send_json_success('Updated');
     }
